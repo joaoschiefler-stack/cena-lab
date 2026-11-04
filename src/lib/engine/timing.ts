@@ -23,24 +23,32 @@ interface BeatTemplate {
   weight: number;
 }
 
+// Estrutura de retenção: todo trecho tem um acontecimento que muda a situação.
+// Pesos da referência de 60s (3s · 7s · 12s · 13s · 13s antes do dilema/desfecho),
+// comprimidos proporcionalmente nas durações menores.
+
+const GANCHO = "Um acontecimento concreto já em curso no primeiro quadro (descoberta, mensagem, prazo, desastre, conflito). Nada de apresentação.";
+const CONTEXTO = "O público entende o que aconteceu, o que o protagonista quer, o que pode perder e por que precisa agir agora.";
+const TENTATIVA = "O protagonista age para resolver e bate num obstáculo concreto; a tentativa tem consequência.";
+
 const COMPACT: BeatTemplate[] = [
-  { key: "gancho", name: "Gancho + contexto", purpose: "Prender a atenção com movimento imediato e situar quem, onde e o que está em jogo, sem explicação verbal longa.", weight: 0.3 },
-  { key: "acontecimento", name: "Acontecimento", purpose: "O evento central que muda a situação; ação visual clara e crescente.", weight: 0.7 },
+  { key: "gancho", name: "Acontecimento inicial", purpose: "Um acontecimento concreto no primeiro quadro já deixa claro o problema e o que está em jogo.", weight: 0.25 },
+  { key: "escalada", name: "Tentativa e complicação", purpose: "O protagonista age e a tentativa piora ou muda a situação.", weight: 0.75 },
 ];
 
 const STANDARD: BeatTemplate[] = [
-  { key: "gancho", name: "Gancho", purpose: "Imagem em movimento que gera uma pergunta nos primeiros 2 segundos.", weight: 0.14 },
-  { key: "contexto", name: "Contexto", purpose: "Apresentar protagonista, lugar e regra do mundo apenas no necessário.", weight: 0.2 },
-  { key: "progressao", name: "Progressão", purpose: "O protagonista age; cada ação revela algo novo e aumenta o interesse.", weight: 0.32 },
-  { key: "conflito", name: "Conflito", purpose: "O acontecimento/obstáculo principal atinge o pico.", weight: 0.34 },
+  { key: "gancho", name: "Acontecimento inicial", purpose: GANCHO, weight: 2.5 },
+  { key: "contexto", name: "Contexto e consequência", purpose: CONTEXTO, weight: 4.5 },
+  { key: "tentativa", name: "Primeira tentativa", purpose: TENTATIVA, weight: 7 },
+  { key: "escalada", name: "Nova informação e escalada", purpose: "Uma descoberta ou complicação aumenta o risco e invalida o plano anterior.", weight: 8 },
 ];
 
 const LONG: BeatTemplate[] = [
-  { key: "gancho", name: "Gancho", purpose: "Imagem em movimento que gera uma pergunta nos primeiros 2 segundos.", weight: 0.11 },
-  { key: "contexto", name: "Contexto", purpose: "Apresentar protagonista, lugar e regra do mundo apenas no necessário.", weight: 0.16 },
-  { key: "progressao", name: "Progressão", purpose: "O protagonista age e explora; pistas e detalhes visuais são plantados.", weight: 0.22 },
-  { key: "conflito", name: "Conflito", purpose: "O acontecimento central muda a situação.", weight: 0.22 },
-  { key: "desenvolvimento", name: "Desenvolvimento", purpose: "Consequências e escalada: o protagonista reage, a tensão/emoção chega ao máximo.", weight: 0.29 },
+  { key: "gancho", name: "Acontecimento inicial", purpose: GANCHO, weight: 3 },
+  { key: "contexto", name: "Contexto e consequência", purpose: CONTEXTO, weight: 7 },
+  { key: "tentativa", name: "Primeira tentativa", purpose: TENTATIVA, weight: 12 },
+  { key: "revelacao", name: "Nova informação", purpose: "Uma descoberta, regra ou complicação muda o que o protagonista sabia e altera as opções dele.", weight: 13 },
+  { key: "escalada", name: "Escalada", purpose: "O risco aumenta e o plano anterior deixa de servir; o protagonista precisa reconsiderar sob mais pressão.", weight: 13 },
 ];
 
 function templatesFor(duration: DurationSec): BeatTemplate[] {
@@ -86,15 +94,15 @@ export function buildTimingPlan({
         name: "Dilema",
         purpose:
           purposes.dilema ??
-          "O protagonista chega ao momento da escolha: as duas possibilidades ficam claras na cena. Nada é resolvido.",
-        weight: duration <= 15 ? 0.2 : 0.14,
+          "As duas saídas aparecem na história com o custo de cada uma visível; o protagonista fica entre elas. Nada é resolvido.",
+        weight: duration <= 15 ? 0.2 : duration <= 30 ? 0.15 : 0.13,
       }
     : {
         key: "desfecho",
         name: cliffhanger ? "Desfecho + gancho" : `Desfecho (${ending.name.toLowerCase()})`,
         purpose: cliffhanger
-          ? `${ending.description} Termina com um gancho claro para o próximo episódio.`
-          : ending.description,
+          ? `O protagonista age no ponto de maior pressão e o arco do episódio se resolve com uma consequência visível. ${ending.description} Termina numa situação nova que motiva o próximo episódio.`
+          : `O protagonista age no ponto de maior pressão e a situação se resolve com uma consequência visível. ${ending.description}`,
         weight: ending.finalShare,
       };
 

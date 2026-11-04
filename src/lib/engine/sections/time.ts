@@ -6,13 +6,16 @@ export function progressionParagraphs(ctx: PromptContext): string[] {
   if (!p.applies && !c) return [];
   const total = c ? ` (de ${c.totalDays})` : "";
 
+  // Um dia só não pode virar uma história parada: o dia tem objetivo, obstáculo e virada próprios.
+  const eventfulDay =
+    "Um dia só não é desculpa para uma história parada: este dia tem um objetivo próprio, pelo menos um obstáculo com consequência e uma virada, e termina numa situação nova que motiva o próximo episódio.";
   if (p.mode === "um_dia") {
     return c
       ? [
-          `**Progressão temporal: um dia por episódio.** Este vídeo representa somente o **Dia ${c.startDay}**${total}. Todas as cenas acontecem no Dia ${c.startDay}: o tempo pode passar dentro do dia (manhã → noite), mas a história nunca chega ao Dia ${c.startDay + 1}. Proibido montagem de vários dias ou cartela "dias depois" — o Dia ${c.startDay + 1} é o próximo episódio.`,
+          `**Progressão temporal: um dia por episódio.** Este vídeo representa somente o **Dia ${c.startDay}**${total}. Todas as cenas acontecem no Dia ${c.startDay}: o tempo pode passar dentro do dia (manhã → noite), mas a história nunca chega ao Dia ${c.startDay + 1}. Proibido montagem de vários dias ou cartela "dias depois" — o Dia ${c.startDay + 1} é o próximo episódio. ${eventfulDay}`,
         ]
       : [
-          "**Progressão temporal: um dia por episódio.** Este vídeo representa um único dia da história. O tempo pode passar dentro do dia, mas não mostre o dia seguinte — ele fica para o próximo episódio.",
+          `**Progressão temporal: um dia por episódio.** Este vídeo representa um único dia da história. O tempo pode passar dentro do dia, mas não mostre o dia seguinte — ele fica para o próximo episódio. ${eventfulDay}`,
         ];
   }
 
@@ -24,7 +27,7 @@ export function progressionParagraphs(ctx: PromptContext): string[] {
     }
     if (p.startDay !== null && p.endDay !== null) {
       return p.startDay === p.endDay
-        ? [`**Período deste vídeo: ${p.label}** — somente o **Dia ${p.startDay}**${total}. O tempo pode passar dentro do dia, mas a história não chega ao Dia ${p.startDay + 1} nem volta ao Dia ${p.startDay - 1 || 1}.`]
+        ? [`**Período deste vídeo: ${p.label}** — somente o **Dia ${p.startDay}**${total}. O tempo pode passar dentro do dia, mas a história não chega ao Dia ${p.startDay + 1} nem volta ao Dia ${p.startDay - 1 || 1}. ${eventfulDay}`]
         : [`**Período deste vídeo: ${p.label}** — do **Dia ${p.startDay}** ao **Dia ${p.endDay}**${total}. Nada acontece antes do Dia ${p.startDay} nem depois do Dia ${p.endDay}; distribua os dias pelas cenas e mostre cada virada de dia com clareza.`];
     }
   }

@@ -50,7 +50,6 @@ export function buildAnimation(ctx: PromptContext): PromptSection {
 
   const camera = [
     "Implemente a câmera como uma transformação (translate + scale) aplicada a um grupo \"mundo\"; camadas de fundo recebem fatores de parallax (ex.: 0.2, 0.5, 1.0).",
-    "Movimentos disponíveis: push-in/zoom, pull-out, pan horizontal/vertical, tilt vertical (aproveitando a altura do 9:16) e tremor curto em impactos.",
     ...tone.camera,
   ];
 
@@ -70,9 +69,9 @@ export function buildAnimation(ctx: PromptContext): PromptSection {
       "Não use a mesma transição em mais de dois cortes seguidos; cortes secos são válidos e muitas vezes os melhores.",
       "Cada transição dura no máximo 12 frames (0,4s), salvo dissolves emocionais intencionais.",
     ])}`,
-    `Física e continuidade do movimento:\n${bullets([
+    `Física e propósito do movimento:\n${bullets([
       "Todo movimento usa easing (ease-in-out, ease-out-back ou spring); movimento linear só para elementos mecânicos ou loops de fundo.",
-      "Respeite coerência espacial: quem anda para a direita continua indo para a direita; distâncias e velocidades fazem sentido entre cenas.",
+      "Todo movimento serve à ação da cena: nada de caminhar, olhar ou esperar só para preencher tempo.",
       "Movimentos bruscos só com propósito narrativo (susto, impacto, piada).",
       rhythm,
     ])}`,

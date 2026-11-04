@@ -1,23 +1,35 @@
 import { continuityTemplate } from "../continuity";
 import { narrationTemplate } from "../narration";
 import { knownEndDay } from "../progression";
-import { bullets, numbered } from "../text";
+import { bullets, formatSeconds, numbered } from "../text";
 import type { PromptContext, PromptSection } from "../types";
 
 /** 11. Critérios de qualidade e entrega. */
 export function buildQualityAndDelivery(ctx: PromptContext): PromptSection {
   const { plan, interactive, episodic, config } = ctx;
+  const endOf = (key: string) => formatSeconds((plan.beats.find((b) => b.key === key) ?? plan.beats[0]).endFrame / plan.fps);
+
+  // Primeiro a história (o que mais falha), depois a técnica.
+  const story = [
+    `Até ${endOf("gancho")} acontece algo concreto (não uma apresentação nem uma cena contemplativa).`,
+    `Até ${endOf(plan.durationSec <= 15 ? "gancho" : "contexto")} o público sabe o que o protagonista quer, o que pode perder e por que precisa agir.`,
+    "Toda cena passa no teste de necessidade; nenhuma só mostra o personagem parado, pensando ou andando sem propósito.",
+    "As cenas se ligam por causa e efeito, e a cada 4–8s muda uma informação, ação, risco ou expectativa.",
+    ...(interactive
+      ? ["O dilema tem peso: as duas alternativas são concretas, distintas e com custos já mostrados na história."]
+      : ["O desfecho é consequência do que o protagonista fez."]),
+    ...(ctx.spoken ? ["A fala cabe no tempo de cada cena sem congelar os personagens."] : []),
+  ];
 
   const checks = [
+    ...story,
     `A timeline soma exatamente ${plan.totalFrames} frames / ${plan.durationSec}s.`,
-    "Há movimento e curiosidade nos 2 primeiros segundos.",
-    "Nenhum trecho fica mais de 1,5s totalmente estático; nenhuma cena está vazia.",
     "Os personagens são idênticos em todas as cenas (mesmos componentes, cores e proporções da ficha).",
     "Nenhum elemento importante sai do quadro ou da área segura.",
     "A história é compreensível só pelas imagens, sem depender do áudio.",
-    "Não há texto demais na tela; tudo que é texto é legível no celular.",
-    "Nenhuma transição se repete mais de duas vezes seguidas sem motivo.",
-    ...(ctx.captions ? ["Legendas não cobrem rostos nem a ação principal."] : ["Não há camada de legendas."]),
+    ctx.captions
+      ? "Há pouco texto na tela, legível no celular, e as legendas não cobrem rostos nem a ação principal."
+      : "Há pouco texto na tela, legível no celular, e não há camada de legendas.",
     ...(interactive
       ? [
           `O quadro de decisão ocupa exatamente os últimos ${plan.decisionFrames} frames e mostra pergunta, A, B e "Comenta A ou B".`,
@@ -33,20 +45,19 @@ export function buildQualityAndDelivery(ctx: PromptContext): PromptSection {
         ]
       : []),
     "Nenhum personagem é ridicularizado por corpo ou aparência; o humor vem de situações e escolhas.",
-    "O resultado não é genérico: a ideia do criador está no centro de cada cena.",
   ];
 
   const steps =
     ctx.mode.id === "artifacts"
       ? [
-          "**Ficha de produção** (curta): título, logline, personagens com IDs, nomes e cores, paleta.",
-          "**Storyboard** em tabela compacta, com IDs e tempos usados no código.",
+          "**Ficha de produção** (curta): título, logline, o que o protagonista quer e pode perder, personagens com IDs, nomes e cores, paleta.",
+          "**Storyboard** em tabela compacta (ID · tempo · acontecimento · novidade · ligação), com os tempos usados no código.",
           "**O artifact com o código completo** da animação, funcionando.",
           "**Como assistir e gravar** (poucas linhas).",
         ]
       : [
-          "**Ficha de produção** (curta): título, logline, personagens com IDs, nomes e cores, paleta.",
-          "**Storyboard** em tabela compacta, com IDs e tempos usados no código.",
+          "**Ficha de produção** (curta): título, logline, o que o protagonista quer e pode perder, personagens com IDs, nomes e cores, paleta.",
+          "**Storyboard** em tabela compacta (ID · tempo · acontecimento · novidade · ligação), com os tempos usados no código.",
           "**Criação/edição dos arquivos** do projeto Remotion, completos.",
           "**Verificações executadas** e seus resultados reais.",
           "**Como visualizar e renderizar** (comandos).",

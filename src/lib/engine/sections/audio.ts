@@ -41,11 +41,12 @@ function speech(ctx: PromptContext): string {
     config.textMode === "narrador"
       ? [
           `Voz: ${tone.narrationVoice}`,
-          "Frases com no máximo 12 palavras; nenhuma fala atravessa um corte de cena importante.",
-          "Marque pausas no roteiro como `[pausa 0,5s]`.",
+          "A primeira fala entra até 0,5s e já traz uma informação concreta (o problema, o prazo ou o risco) — nunca uma apresentação.",
+          "Até 10 palavras por frase, linguagem falada, fatos concretos (números, nomes, prazos) em vez de adjetivos; nenhuma fala atravessa um corte de cena importante.",
+          "Pausas só com função dramática (antes de uma revelação, depois de um choque), marcadas como `[pausa 0,5s]`.",
         ]
       : [
-          "No máximo 8 palavras por fala e uma fala por vez (sem falas sobrepostas).",
+          "A primeira fala entra até 0,5s e já mostra o conflito; no máximo 8 palavras por fala e uma fala por vez (sem falas sobrepostas).",
           "Cada fala revela personalidade: duas pessoas não falam do mesmo jeito.",
           "Mostre as falas em balões de fala desenhados em SVG (ponta apontando para quem fala), ou na legenda com o nome do personagem na cor dele — escolha um sistema e mantenha-o no vídeo inteiro.",
           "Marque pausas como `[pausa 0,5s]`.",
@@ -55,11 +56,11 @@ function speech(ctx: PromptContext): string {
     intro,
     budget,
     bullets([
-      `Total máximo: ~${plan.narrationWordBudget} palavras. Menos é melhor: deixe momentos só com imagem.`,
+      `Total máximo: ~${plan.narrationWordBudget} palavras, já com espaço para pausas${ctx.interactive ? " e para o quadro de decisão" : ""}. Escreva o texto a partir dos acontecimentos do storyboard: cada fala acrescenta o que a imagem não mostra (motivo, prazo, risco, consequência) e algumas ações ficam só com imagem.`,
       ...rules,
-      "A fala de cada trecho começa depois que a imagem correspondente aparece (imagem primeiro, palavra depois).",
-      "Reserve tempo para as falas: cada cena dura pelo menos o tempo da sua fala mais ~0,3s de respiro. As durações são estimativas — a voz gravada ou sintetizada depois pode exigir pequenos ajustes na edição.",
-      "Além de usar as falas nas cenas/legendas, entregue o **Roteiro de narração** separado, no formato exato da seção de entrega, com o mesmo texto que aparece no vídeo.",
+      "Depois do acontecimento inicial, a imagem aparece primeiro e a fala vem logo em seguida (até ~0,3s).",
+      "Enquanto alguém fala, a cena continua acontecendo: nenhum personagem fica parado só para caber o texto. Se a fala não cabe na ação, corte palavras — não alongue a cena.",
+      "Reserve tempo para as falas: cada cena dura pelo menos o tempo da sua fala mais ~0,3s de respiro. Estime a sincronização por cena (início e fim de cada fala); a voz gravada ou sintetizada depois pode exigir pequenos ajustes na edição.",
       ...(ctx.interactive ? ["No quadro de decisão, a única fala é a leitura da pergunta (opcional)."] : []),
       `Inclua sugestões de efeitos sonoros como notas por cena (ex.: ${tone.soundIdeas.slice(0, 3).join(", ")}).`,
       ...honesty(ctx),
@@ -91,7 +92,7 @@ function captions(ctx: PromptContext): string {
       : [
           `**Legendas padrão**: no máximo ${CAPTION_RULES.maxCharsPerLine} caracteres por linha e ${CAPTION_RULES.maxLines} linhas por bloco, quebrando a linha em pontos naturais da frase.`,
           `Fonte do sistema, peso 800, tamanho ${CAPTION_RULES.fontSizeMin}–${CAPTION_RULES.fontSizeMax}px, centralizada.`,
-          `Texto \`${palette.dark ? palette.ink : "#FFFFFF"}\` com contorno/sombra escura ou caixa semitransparente atrás. Estilo: ${tone.captionFeel}. Destaque no máximo uma palavra-chave por bloco com \`${palette.accent}\`.`,
+          `Texto \`${palette.dark ? palette.ink : "#FFFFFF"}\` com contorno/sombra escura ou caixa semitransparente atrás. Estilo: ${tone.captionFeel}. Destaque no máximo uma palavra-chave por bloco com \`${palette.accent}\` — a informação concreta (prazo, risco, nome), não um adjetivo.`,
           "Cada bloco fica na tela entre 1s e 3s; entrada e saída com fade/escala curtos (4–6 frames).",
         ];
 

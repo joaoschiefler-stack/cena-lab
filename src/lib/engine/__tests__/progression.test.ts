@@ -55,8 +55,8 @@ describe("2. um dia por episódio impede avanço indevido", () => {
     expect(r.prompt).not.toMatch(/O passar dos dias é mostrado visualmente/);
     expect(r.prompt).not.toMatch(/Avanço visível por marcos de dias/);
     expect(r.prompt).toMatch(/O tempo avança só ao longo do dia \(Dia 1\)/);
-    const progressao = r.plan.beats.find((b) => b.key === "progressao")!;
-    expect(progressao.purpose).toMatch(/ao longo do dia/);
+    const tentativa = r.plan.beats.find((b) => b.key === "tentativa")!;
+    expect(tentativa.purpose).toMatch(/ao longo do dia/);
   });
 
   it("vale também fora de desafio (série sem contagem)", () => {

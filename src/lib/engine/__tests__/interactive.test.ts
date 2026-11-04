@@ -177,7 +177,7 @@ describe("tipos de história alteram as instruções", () => {
       for (const rule of t.rules) expect(prompts[i]).toContain(rule);
       for (const purpose of Object.values(t.beatPurposes)) {
         // trechos que existem no esqueleto de 30s recebem a função do preset
-        if (purpose && ["gancho", "contexto", "progressao", "conflito"].some((k) => t.beatPurposes[k] === purpose)) {
+        if (purpose && ["gancho", "contexto", "tentativa", "escalada"].some((k) => t.beatPurposes[k] === purpose)) {
           expect(prompts[i]).toContain(purpose);
         }
       }

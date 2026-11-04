@@ -60,7 +60,7 @@ describe("invariantes do prompt mestre (matriz de ideias de referência)", () =>
 
     // Cenas temporizadas
     expect(p).toMatch(/Planeje entre \*\*\d+ e \d+ cenas\*\*/);
-    expect(p).toMatch(/\| Trecho \| Início \| Fim \| Frames \| Função \|/);
+    expect(p).toMatch(/\| Trecho \| Início \| Fim \| Frames \| O que precisa acontecer \|/);
     expect(p).toContain(`exatamente ${frames} frames`);
 
     // Continuidade de personagens
@@ -132,8 +132,8 @@ describe("duração altera a estrutura", () => {
     const long = gen({ duration: 60 });
     expect(short.plan.beats.length).toBeLessThan(long.plan.beats.length);
     expect(short.plan.sceneCount.target).toBeLessThan(long.plan.sceneCount.target);
-    expect(short.prompt).toMatch(/Em 15 segundos não há espaço para introdução/);
-    expect(long.prompt).toMatch(/Desenvolvimento com escalada/);
+    expect(short.prompt).toMatch(/Em 15s:\*\* um único problema/);
+    expect(long.prompt).toMatch(/Mecanismos possíveis/);
   });
 
   it("ritmo dinâmico gera mais cenas que moderado", () => {

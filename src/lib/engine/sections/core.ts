@@ -41,11 +41,11 @@ export function buildObjective(ctx: PromptContext): PromptSection {
     id: "objetivo",
     title: "Ideia e objetivo do vídeo",
     body: [
-      `Você vai atuar como **diretor(a) de animação**, **roteirista visual** e **engenheiro(a) de animações programáticas**. Seu trabalho é transformar a ideia abaixo em uma animação narrativa curta e **implementá-la em código executável** — não apenas escrever o roteiro.`,
+      `Você vai atuar como **diretor(a) de animação**, **roteirista visual** e **engenheiro(a) de animações programáticas**. Seu trabalho é transformar a ideia abaixo em uma história curta em que algo importante acontece desde o primeiro segundo e **implementá-la em código executável** — não apenas escrever o roteiro. Uma animação bonita com uma história parada não serve.`,
       `**Ideia do criador:**\n> ${idea}`,
       `Entregue uma animação vertical **${FORMAT.aspect} (${FORMAT.width}×${FORMAT.height})** com exatamente **${plan.durationSec} segundos** (${plan.totalFrames} frames a ${plan.fps} fps), no estilo **${ctx.style.name}**, tom de **${ctx.tone.name.toLowerCase()}**, implementada como ${ctx.mode.id === "artifacts" ? "um **Claude Artifact interativo** (React + SVG)" : "um **projeto Remotion (React)** executável localmente"}.`,
       `O vídeo será assistido em celular (TikTok, Reels, Shorts), muitas vezes sem som: a imagem precisa sustentar a história sozinha.`,
-      "Tome as decisões criativas você mesmo(a), sem me fazer perguntas antes de começar. Quando algo não estiver definido, escolha o que deixa a história mais clara e mais visual.",
+      "Tome as decisões criativas você mesmo(a), sem me fazer perguntas antes de começar. Quando algo não estiver definido, escolha o que deixa a história mais clara, mais tensa e mais visual.",
       ["**Ficha técnica (parâmetros fixos):**", "", "| Parâmetro | Valor |", "|---|---|", ...rows.map(([k, v]) => `| ${k} | ${v} |`)].join("\n"),
     ].join("\n\n"),
   };

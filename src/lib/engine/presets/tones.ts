@@ -22,8 +22,8 @@ const suspense: TonePreset = {
   ],
   rhythm: [
     "Tensão em escada: cada cena revela um pouco mais e termina com uma pergunta não respondida.",
-    "Planos ligeiramente mais longos no início e cortes mais rápidos perto do clímax.",
-    "Use pausas de 0,5–1s de quase-silêncio visual antes de cada revelação.",
+    "O ritmo acelera conforme o risco cresce: cortes mais curtos perto do dilema/clímax.",
+    "Uma pausa curta (0,3–0,6s) só antes da revelação principal — não antes de cada cena.",
   ],
   camera: [
     "Push-in lento (zoom de 100% para 108–115%) durante momentos de descoberta.",
@@ -39,8 +39,8 @@ const suspense: TonePreset = {
   captionFeel: "sóbria, branca com sombra suave",
   hooks: [
     "Abra no meio da ação: o primeiro quadro já mostra algo errado acontecendo, e só depois revele o contexto.",
-    "Abra com um close extremo em um detalhe (objeto, olho, ponteiro de relógio) e afaste a câmera para revelar onde estamos.",
-    "Abra com uma cena aparentemente normal que é quebrada por um evento estranho antes do segundo 2.",
+    "Abra com um close extremo no detalhe que denuncia o problema (ponteiro parado, mensagem, marca) e, em até 1s, afaste a câmera para mostrar o perigo.",
+    "Abra no instante em que o problema surge: o primeiro quadro já mostra algo errado e a reação do protagonista.",
   ],
   motifs: [
     "Um relógio ou contador visível que avança entre cenas, marcando a pressão do tempo.",
@@ -48,7 +48,7 @@ const suspense: TonePreset = {
     "Um objeto na cor de destaque que reaparece em todas as cenas, cada vez mais perto do protagonista.",
   ],
   transitions: ["corte seco no pico", "fade para preto curto (6–8 frames)", "match cut por forma"],
-  avoid: ["revelar tudo no início", "trilha visual frenética sem pausas", "explicar o mistério em texto"],
+  avoid: ["explicar a origem do mistério cedo demais", "trilha visual frenética sem pausas", "explicar o mistério em texto"],
   paceFactor: 1.05,
   wordsPerSecond: 2.2,
 };
@@ -67,7 +67,7 @@ const terror: TonePreset = {
     "Luz instável (cintilação, falhas) em momentos de ameaça.",
   ],
   rhythm: [
-    "Calmaria longa e desconfortável seguida de evento abrupto (contraste de ritmo é o que gera o susto).",
+    "Calmaria curta e tensa (1–2s) seguida de evento abrupto; o contraste de ritmo gera o susto, mas nunca duas calmarias seguidas.",
     "Antes do susto, reduza movimento ao mínimo por 1–1,5s.",
     "Após o susto, não volte ao normal: mantenha a ameaça presente até o fim.",
   ],
@@ -172,7 +172,7 @@ const humor: TonePreset = {
   captionFeel: "divertida, palavra-chave com pop de escala",
   hooks: [
     "Abra com o protagonista já em uma situação absurda e sério demais para ela.",
-    "Abra com uma expectativa clara (um plano perfeito) que o espectador sente que vai dar errado.",
+    "Abra com o plano perfeito dando errado no primeiro segundo — um desastre engraçado em curso.",
     "Abra com uma ação exagerada e só depois revele o motivo banal.",
   ],
   motifs: [
@@ -216,7 +216,7 @@ const ficcao: TonePreset = {
   hooks: [
     "Abra com uma escala impossível: algo enorme revelado a partir de um detalhe pequeno.",
     "Abra com uma interface/tela mostrando um alerta curto e legível.",
-    "Abra com o protagonista flutuando/viajando em silêncio e um elemento estranho entrando no quadro.",
+    "Abra com uma falha já acontecendo (energia caindo, alarme, aviso com prazo na tela) e o protagonista reagindo.",
   ],
   motifs: [
     "Um padrão geométrico (anel, triângulo, grade) que aparece em escalas cada vez maiores.",
@@ -224,7 +224,7 @@ const ficcao: TonePreset = {
     "Uma luz na cor de destaque que pulsa no ritmo da história.",
   ],
   transitions: ["glitch de interface", "zoom through (atravessar um objeto)", "dissolve luminoso"],
-  avoid: ["telas cheias de texto ilegível", "tecnologia sem regras", "planos estáticos de espaço vazio"],
+  avoid: ["telas cheias de texto ilegível", "tecnologia sem regras", "planos contemplativos de espaço vazio"],
   paceFactor: 1.0,
   wordsPerSecond: 2.4,
 };
@@ -242,8 +242,8 @@ const drama: TonePreset = {
     "A temperatura da luz acompanha a emoção (mais fria na perda, mais quente na reconciliação).",
   ],
   rhythm: [
-    "Planos mais longos, com espaço para o personagem reagir.",
-    "Silêncios intencionais; a emoção está nas pausas, não na pressa.",
+    "Planos um pouco mais longos só nos momentos de emoção; mesmo assim, cada plano traz algo novo (um gesto, um objeto, uma frase).",
+    "Silêncios curtos e intencionais, logo depois de algo acontecer — nunca para preencher tempo.",
   ],
   camera: [
     "Push-in lento no rosto/postura nos momentos de decisão.",
@@ -257,9 +257,9 @@ const drama: TonePreset = {
   narrationVoice: "Íntima e pausada, frases simples, primeira pessoa quando fizer sentido.",
   captionFeel: "suave, fade in/out, sem efeitos de escala",
   hooks: [
-    "Abra com um objeto simbólico em close e revele aos poucos a quem ele pertence.",
-    "Abra com o protagonista sozinho em um espaço grande demais para uma pessoa.",
-    "Abra com uma ação cotidiana feita de forma estranhamente cuidadosa, sugerindo que é a última vez.",
+    "Abra com um objeto simbólico sendo perdido, quebrado ou devolvido — um acontecimento que já fere a relação.",
+    "Abra com o gesto ou a frase que inicia a crise (mala na porta, mensagem não respondida, \"precisamos conversar\").",
+    "Abra com uma ação cotidiana interrompida por uma notícia que muda tudo (um papel, uma ligação, um prazo).",
   ],
   motifs: [
     "Um objeto simbólico presente em todas as cenas, em estados diferentes.",

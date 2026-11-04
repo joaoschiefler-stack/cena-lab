@@ -138,10 +138,9 @@ export function adaptStoryType<T extends { id: string; rules: string[]; beatPurp
     ),
     beatPurposes: {
       ...preset.beatPurposes,
-      gancho: `Apresentar o desafio em um quadro forte: objetivo + prazo + "${dayLabel}".`,
-      progressao: `Progresso visível ${within} (manhã → tarde → noite, ou etapas).`,
-      desenvolvimento: `Recuperação com progresso visível antes do fim ${progression.freeText ? "do período" : "do dia"}.`,
-      acontecimento: `Etapas ${within} com um obstáculo concreto.`,
+      gancho: `O desafio em um acontecimento forte: objetivo + prazo + "${dayLabel}" + a primeira prova de que vai ser difícil.`,
+      tentativa: `O plano em ação ${within} (manhã → tarde → noite, ou etapas), com um obstáculo concreto.`,
+      escalada: `Antes do fim ${progression.freeText ? "do período" : "do dia"}, um tropeço ou descoberta deixa a situação pior (ou mais promissora) e cria o problema do próximo episódio.`,
     },
   };
 }

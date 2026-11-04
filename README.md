@@ -158,9 +158,21 @@ generateMasterPrompt(config)
  └─ continuity.ts                      modelo e parser da Ficha de continuidade
 ```
 
+### Motor narrativo (retenção)
+
+O prompt prioriza acontecimentos, não clima. Em todas as configurações ele exige:
+
+- **Regra central:** toda cena cumpre uma função (revelar informação, criar problema, aumentar risco, mostrar consequência, obrigar a agir, mudar a interpretação ou preparar a decisão). Cenas que só mostram o personagem parado, pensando ou andando são condensadas ou cortadas.
+- **Acontecimento inicial nos primeiros ~3s**, com uma lista de aberturas proibidas (por exemplo, "Era uma vez" e "Tudo parecia normal"), e **motivação e consequências até ~10s**: o que aconteceu, o que o protagonista quer, o que pode perder e por que age agora.
+- **Microganchos a cada 4–8s**, cenas ligadas por causa e efeito ("por isso / mas") e um **teste de necessidade** por cena antes do código.
+- **Dilema A/B com custo:** as alternativas são concretas, distintas e arriscam algo já mostrado. O prompt traz um exemplo fraco e um forte e proíbe reutilizar o exemplo. Nada é resolvido.
+- **Narração a partir dos acontecimentos:** a primeira fala vem em até 0,5s, as frases são curtas, as pausas só aparecem com função dramática e o personagem continua agindo enquanto alguém fala.
+
+Esqueleto de 60s (referência, comprimido proporcionalmente em 15/30/45s): acontecimento inicial (0–3s) → contexto e consequência (3–10s) → primeira tentativa → nova informação → escalada → dilema → quadro A/B (ou desfecho na história completa). Os testes em `__tests__/retention.test.ts` verificam essas instruções. Eles não provam que a história gerada pelo Claude é melhor: isso só se confirma produzindo a animação.
+
 Os parâmetros mudam o conteúdo do prompt, não só os rótulos. Alguns exemplos:
 
-- **Duração**: 15s gera 3 trechos compactos (gancho + contexto, acontecimento, desfecho), 30s gera 5 e 45/60s geram 6. Os tempos saem em segundos e em frames exatos, e o número de cenas varia com a duração, o ritmo e o tom.
+- **Duração**: 15s gera 3 trechos (acontecimento inicial, tentativa e complicação, desfecho), 30s gera 5 e 45/60s geram 6, mais o quadro A/B quando ativado. Os tempos saem em segundos e em frames exatos, e o número de cenas varia com a duração, o ritmo e o tom.
 - **Estilo**: no cartoon, personagem com ~3 cabeças de altura, pivôs nas articulações, dicionário de expressões e squash & stretch. No stickman, esqueleto paramétrico com cinemática direta, biblioteca de poses e emoção pela linguagem corporal.
 - **Tom**: muda a paleta (hex), a iluminação, o ritmo, a câmera, a estratégia de revelação, a velocidade da narração (e o orçamento de palavras) e a duração média das cenas.
 - **Sem narração**: a história passa a ser 100% visual. **Sem legendas**: a seção de legendas é removida. **Legendas sem narração**: viram textos narrativos curtos na tela.
