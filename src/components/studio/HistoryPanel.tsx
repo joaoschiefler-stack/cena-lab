@@ -52,7 +52,7 @@ export function HistoryPanel({ onOpen }: { onOpen: (entry: HistoryEntry) => void
                 className="min-w-0 flex-1 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand-soft"
               >
                 <span className="block truncate text-sm text-fg">{entry.title}</span>
-                <span className="mt-0.5 block font-mono text-[10px] text-subtle">
+                <span className="mt-0.5 block font-mono text-xs text-subtle">
                   {STYLES[entry.config.style].name} · {entry.config.duration}s · {MODES[entry.config.mode].shortName} ·{" "}
                   {dateFmt.format(entry.createdAt)}
                 </span>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { DM_Mono, DM_Sans, Sora } from "next/font/google";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
+import { publishedVideos } from "@/lib/gallery";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
     description: SITE.description,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `${SITE.name} — ${SITE.tagline}`,
     description: SITE.description,
   },
@@ -61,6 +62,7 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const hasVideos = publishedVideos().length > 0;
   return (
     <html
       lang="pt-BR"
@@ -73,11 +75,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Pular para o conteúdo
         </a>
-        <SiteHeader />
+        <SiteHeader hasVideos={hasVideos} />
         <main id="conteudo" className="flex-1">
           {children}
         </main>
-        <SiteFooter />
+        <SiteFooter hasVideos={hasVideos} />
       </body>
     </html>
   );

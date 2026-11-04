@@ -19,10 +19,20 @@ const SECTIONS = [
     ],
   },
   {
-    title: "Histórico local",
+    title: "O que fica salvo no seu navegador",
     body: [
-      "As últimas gerações (até 12) são salvas no armazenamento local (localStorage) do seu navegador, para você reabri-las depois. Esses dados ficam só no seu dispositivo e navegador.",
-      "Você pode excluir itens individualmente ou limpar tudo no painel “Histórico local” do estúdio, ou apagando os dados do site nas configurações do navegador.",
+      "Para você não perder o trabalho, o CENA LAB guarda três tipos de dado no armazenamento local (localStorage) do seu navegador:",
+      "• Histórico de prompts (até 12): a ideia e as configurações de cada geração, para reabrir depois. Chave cenalab:history:v1.",
+      "• Séries (até 20): título, episódios, resumos, alternativas vencedoras e a Ficha de continuidade que você colou, para gerar o próximo episódio. Chave cenalab:series:v1.",
+      "• Roteiros de narração (até 30): o texto que você colou no painel de narração e as edições do texto para voz. Chave cenalab:narration:v1.",
+      "Esses dados ficam só neste dispositivo e neste navegador: não são enviados a nós nem a terceiros, e não sincronizam entre aparelhos. Em janela anônima, são apagados quando ela é fechada.",
+    ],
+  },
+  {
+    title: "Como apagar",
+    body: [
+      "No estúdio: exclua itens do “Histórico local” um a um ou use “Limpar”; exclua uma série no painel “Minhas séries”; apague o texto do painel de narração para removê-lo.",
+      "Para apagar tudo de uma vez, limpe os dados deste site nas configurações do seu navegador.",
     ],
   },
   {
@@ -54,13 +64,13 @@ const SECTIONS = [
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
-      <p className="font-mono text-[11px] uppercase tracking-wider text-brand">Privacidade</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Política de privacidade</h1>
-      <p className="mt-3 text-sm text-subtle">Válida para a versão atual (MVP) do CENA LAB.</p>
+      <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-brand">Privacidade</p>
+      <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl">Política de privacidade</h1>
+      <p className="mt-4 text-sm text-muted">Válida para a versão atual do CENA LAB: demonstração gratuita, sem contas e sem pagamentos.</p>
       <div className="mt-10 space-y-10">
         {SECTIONS.map((s) => (
           <section key={s.title}>
-            <h2 className="text-lg font-medium">{s.title}</h2>
+            <h2 className="text-lg font-bold">{s.title}</h2>
             {s.body.map((p) => (
               <p key={p} className="mt-3 leading-relaxed text-muted">
                 {p}

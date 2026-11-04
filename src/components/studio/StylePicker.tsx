@@ -34,7 +34,7 @@ export function StylePicker({ value, onChange }: { value: StyleId; onChange: (v:
                 <span className="mt-1 text-xs leading-relaxed text-muted">{style.tagline}</span>
                 <span className="mt-auto flex flex-wrap gap-1 pt-2">
                   {style.traits.map((t) => (
-                    <span key={t} className="rounded-md border border-line px-1.5 py-0.5 text-[10px] text-subtle">
+                    <span key={t} className="rounded-md border border-line px-1.5 py-0.5 text-xs text-subtle">
                       {t}
                     </span>
                   ))}

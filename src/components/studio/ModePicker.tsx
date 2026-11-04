@@ -44,7 +44,7 @@ export function ModePicker({
               <span>
                 <span className="block text-sm font-medium text-fg">{mode.name}</span>
                 {!compact && <span className="mt-0.5 block text-xs leading-relaxed text-muted">{mode.description}</span>}
-                <span className="mt-1 block font-mono text-[10px] uppercase tracking-wide text-subtle">{DETAILS[mode.id]}</span>
+                <span className="mt-1 block font-mono text-xs uppercase tracking-wide text-subtle">{DETAILS[mode.id]}</span>
               </span>
             </span>
           </label>

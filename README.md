@@ -64,12 +64,12 @@ Os tokens ficam centralizados em `src/app/globals.css` (`@theme`):
 | Rosa (`pink`) | `#F5A7CA` | detalhes narrativos, ilustrações, selos de série |
 | Fundo (`base`) | `#F8FAFF` | página |
 | Superfície (`surface`) | `#FFFFFF` | cartões |
-| Texto (`fg` / `muted`) | `#192447` / `#66718C` | títulos e corpo / texto secundário |
+| Texto (`fg` / `muted` / `subtle`) | `#192447` / `#56617C` / `#5F6A85` | títulos / texto secundário / rótulos (todos ≥ 4,5:1, AA) |
 | Borda (`line`) | `#DDE5F4` | divisórias e contornos |
 
 A tipografia é Sora nos títulos (aplicada automaticamente a `h1`–`h3`), DM Sans na interface e DM Mono em timecodes e rótulos.
 
-O símbolo (`components/ui/Logo.tsx`) são três quadros 9:16 em leque, como uma sequência de cenas de flipbook. Use `LogoMark` para o símbolo e `Wordmark` para o nome.
+O símbolo são três quadros 9:16 em leque (uma sequência de cenas, como um flipbook) com um “play” no quadro da frente. A geometria fica em `src/lib/brand-mark.ts` e alimenta o logo (`LogoMark`), o favicon (`app/icon.tsx`), o ícone do iOS (`app/apple-icon.tsx`) e a imagem de compartilhamento (`app/opengraph-image.tsx`), todos gerados no build com `next/og`.
 
 Microinterações: `.card-hover` e `.anim-fade-up`. Todas respeitam `prefers-reduced-motion`.
 
@@ -84,6 +84,8 @@ Os dados ficam em `src/data/videos.ts`, uma fonte única para o destaque da home
 Assim, nunca há link quebrado nem vídeo inventado. O passo a passo para publicar está em [`public/videos/README.md`](public/videos/README.md).
 
 O primeiro case, "30 dias para salvar o casamento — Episódio 1", já está cadastrado como `published: false`.
+
+Sem vídeo publicado, o site esconde tudo que levaria a uma galeria vazia: o link "Animações" do menu, o botão "Ver animações" e a seção "Feitas com o CENA LAB" da homepage. O hero mostra a ilustração (marcada como ilustração). Com o vídeo `featured` publicado, ele entra no hero com autoplay silencioso, em loop, com botões de som e pausa. Só é baixado quando aparece na tela e não toca sozinho com "reduzir movimento" (`components/gallery/HeroVideo.tsx`).
 
 ## Como instalar e rodar
 
@@ -103,7 +105,7 @@ npm run dev          # http://localhost:3000
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 
-Não precisa de variáveis de ambiente para rodar. Em produção, defina `NEXT_PUBLIC_SITE_URL` (ex.: `https://cenalab.com.br`) para gerar URLs corretas no sitemap, no robots e nas metatags.
+Não precisa de variáveis de ambiente para rodar. Em produção, defina `NEXT_PUBLIC_SITE_URL` (ex.: `https://cenalab.com.br`; veja `.env.example`) para gerar URLs corretas no sitemap, no robots, nas metatags e na imagem de compartilhamento. Na Vercel, sem a variável, o domínio de produção do projeto é usado. Sem nenhuma das duas, o sitemap fica vazio, o robots não anuncia sitemap e o build avisa no terminal: nada aponta para localhost.
 
 ## Stack
 

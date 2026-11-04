@@ -1,10 +1,10 @@
 "use client";
 
-import { Sparkles, Wand2 } from "lucide-react";
+import { ChevronDown, Sparkles, Wand2 } from "lucide-react";
 import type { RefObject } from "react";
 import { Button } from "@/components/ui/Button";
 import { SAMPLE_IDEAS } from "@/data/ideas";
-import { DURATIONS, LIMITS, TONE_LIST } from "@/lib/engine";
+import { DEFAULT_CONFIG, DURATIONS, LIMITS, MODES, STORY_TYPES, TONES, TONE_LIST, detectChallengeDays } from "@/lib/engine";
 import type { ConfigErrors, StudioConfig } from "@/lib/engine";
 import { AdvancedOptions } from "./AdvancedOptions";
 import { FieldLegend, Segmented } from "./controls";
@@ -37,7 +37,7 @@ export function StudioForm({ config, errors, onChange, onSubmit, ideaRef, contin
       {/* Ideia */}
       <div>
         <label htmlFor="idea" className="mb-3 flex items-baseline gap-2 font-display text-xl font-bold tracking-tight text-fg sm:text-2xl">
-          <span className="font-mono text-[11px] font-normal text-brand">01</span>
+          <span className="font-mono text-xs font-normal text-brand">01</span>
           {continuing ? "Ideia original da série" : "Qual história você quer transformar em animação?"}
         </label>
         <div
@@ -99,30 +99,76 @@ export function StudioForm({ config, errors, onChange, onSubmit, ideaRef, contin
 
       <FormatFields config={config} errors={errors} onChange={onChange} continuing={Boolean(continuing)} />
 
-      <StoryTypeFields config={config} errors={errors} onChange={onChange} />
-
       <fieldset>
-        <FieldLegend step="04" hint={continuing ? "Mantenha o mesmo da série" : undefined}>
+        <FieldLegend step="03" hint={continuing ? "Mantenha o mesmo da série" : undefined}>
           Estilo de animação
         </FieldLegend>
         <StylePicker value={config.style} onChange={(style) => onChange({ style })} />
       </fieldset>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <fieldset>
-          <FieldLegend step="05" hint="Formato 9:16 · 1080×1920">
-            Duração
-          </FieldLegend>
-          <Segmented
-            name="duration"
-            value={config.duration}
-            onChange={(duration) => onChange({ duration })}
-            options={DURATIONS.map((d) => ({ value: d, label: `${d}s` }))}
-          />
-        </fieldset>
+      <fieldset>
+        <FieldLegend step="04" hint="Formato 9:16 · 1080×1920">
+          Duração
+        </FieldLegend>
+        <Segmented
+          name="duration"
+          value={config.duration}
+          onChange={(duration) => onChange({ duration })}
+          options={DURATIONS.map((d) => ({ value: d, label: `${d}s` }))}
+        />
+      </fieldset>
+
+      <StoryOptions config={config} errors={errors} onChange={onChange} />
+
+      <AdvancedOptions config={config} errors={errors} onChange={onChange} />
+
+      {/* No celular, a ação fica presa ao rodapé da tela enquanto o formulário está visível. */}
+      <div className="sticky bottom-0 z-20 -mx-4 flex flex-col items-stretch gap-3 border-t border-line bg-base/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md sm:static sm:mx-0 sm:flex-row sm:items-center sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <Button type="submit" size="lg" className="sm:min-w-64">
+          <Wand2 className="h-4.5 w-4.5" aria-hidden="true" />
+          {continuing ? `Gerar episódio ${continuing.episode}` : "Gerar meu prompt"}
+        </Button>
+        <p className="hidden text-xs text-subtle sm:block">
+          Gerado no seu navegador, na hora. <kbd className="rounded border border-line px-1 font-mono">Ctrl</kbd>+
+          <kbd className="rounded border border-line px-1 font-mono">Enter</kbd> também funciona.
+        </p>
+      </div>
+    </form>
+  );
+}
+
+/** Tipo de história, tom e modo técnico: recolhidos para quem só quer escrever e gerar. */
+function StoryOptions({ config, errors, onChange }: Pick<Props, "config" | "errors" | "onChange">) {
+  const d = DEFAULT_CONFIG;
+  const customized = config.storyType !== d.storyType || config.tone !== d.tone || config.mode !== d.mode;
+  const hasErrors = Boolean(errors.challengeDays || errors.timeSpan);
+  const detected = detectChallengeDays(config.idea);
+  const summary = [STORY_TYPES[config.storyType].name, TONES[config.tone].name, MODES[config.mode].shortName].join(" · ");
+
+  return (
+    <details open={hasErrors || undefined} className="group rounded-2xl border border-line bg-surface/50 open:bg-surface/70">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-fg [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0">
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-xs text-brand">05</span>
+            Tipo de história, tom e onde criar
+            {customized && <span className="rounded-md bg-brand-soft px-1.5 py-0.5 text-xs font-normal text-brand">ajustado</span>}
+          </span>
+          <span className="mt-0.5 block text-xs font-normal text-muted">
+            {summary}
+            {detected && config.storyType !== "desafio" && (
+              <span className="text-brand"> · sugestão: Desafio de {detected} dias</span>
+            )}
+          </span>
+        </span>
+        <ChevronDown className="h-4 w-4 shrink-0 text-subtle transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+
+      <div className="space-y-8 border-t border-line px-4 pb-5 pt-5">
+        <StoryTypeFields config={config} errors={errors} onChange={onChange} />
 
         <fieldset>
-          <FieldLegend step="06">Tom da história</FieldLegend>
+          <FieldLegend>Tom da história</FieldLegend>
           <Segmented
             name="tone"
             columns={3}
@@ -131,27 +177,12 @@ export function StudioForm({ config, errors, onChange, onSubmit, ideaRef, contin
             options={TONE_LIST.map((t) => ({ value: t.id, label: t.name }))}
           />
         </fieldset>
+
+        <fieldset>
+          <FieldLegend hint="Muda as instruções técnicas do prompt">Onde o Claude vai criar a animação</FieldLegend>
+          <ModePicker value={config.mode} onChange={(mode) => onChange({ mode })} />
+        </fieldset>
       </div>
-
-      <fieldset>
-        <FieldLegend step="07" hint="Muda as instruções técnicas do prompt">
-          Onde o Claude vai criar a animação
-        </FieldLegend>
-        <ModePicker value={config.mode} onChange={(mode) => onChange({ mode })} />
-      </fieldset>
-
-      <AdvancedOptions config={config} errors={errors} onChange={onChange} />
-
-      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-        <Button type="submit" size="lg" className="sm:min-w-64">
-          <Wand2 className="h-4.5 w-4.5" aria-hidden="true" />
-          {continuing ? `Gerar episódio ${continuing.episode}` : "Gerar meu prompt"}
-        </Button>
-        <p className="text-xs text-subtle">
-          Gerado no seu navegador, na hora. <kbd className="rounded border border-line px-1 font-mono">Ctrl</kbd>+
-          <kbd className="rounded border border-line px-1 font-mono">Enter</kbd> também funciona.
-        </p>
-      </div>
-    </form>
+    </details>
   );
 }

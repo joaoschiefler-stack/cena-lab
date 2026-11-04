@@ -39,7 +39,7 @@ function isCustomized(c: StudioConfig): boolean {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-4">
-      <h3 className="font-mono text-[11px] uppercase tracking-wider text-subtle">{title}</h3>
+      <h3 className="font-mono text-xs uppercase tracking-wider text-subtle">{title}</h3>
       {children}
     </div>
   );
@@ -56,10 +56,10 @@ export function AdvancedOptions({ config, errors, onChange }: Props) {
     <details open={hasErrors || undefined} className="group rounded-2xl border border-line bg-surface/50 open:bg-surface/70">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-fg [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-2">
-          <span className="font-mono text-[11px] text-brand">08</span>
+          <span className="font-mono text-xs text-brand">06</span>
           Personalização avançada
           {isCustomized(config) && (
-            <span className="rounded-md bg-brand-soft px-1.5 py-0.5 text-[10px] font-normal text-brand">ajustada</span>
+            <span className="rounded-md bg-brand-soft px-1.5 py-0.5 text-xs font-normal text-brand">ajustada</span>
           )}
         </span>
         <span className="flex items-center gap-2 text-xs font-normal text-subtle">

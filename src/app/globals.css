@@ -24,8 +24,8 @@
 
   /* Texto */
   --color-fg: #192447;
-  --color-muted: #66718c;
-  --color-subtle: #6f7a94;
+  --color-muted: #56617c; /* 5,5:1 sobre brand-soft; era #66718c */
+  --color-subtle: #5f6a85; /* ≥ 4,8:1 em todos os fundos claros (AA); era #6f7a94 */
 
   /* Marca */
   --color-brand: #3158dc;
@@ -36,7 +36,7 @@
   --color-pink-ink: #a8326c;
 
   /* Estados */
-  --color-ok: #17845a;
+  --color-ok: #13744f;
   --color-danger: #c8323f;
   --color-warn: #b7791f;
   --color-warn-soft: #fff6e6;

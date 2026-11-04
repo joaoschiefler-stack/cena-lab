@@ -42,7 +42,7 @@ function ProcessDialog({ video, dialogRef }: { video: GalleryVideo; dialogRef: R
       <div className="max-h-[85vh] overflow-auto p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-wider text-brand">Como foi criado</p>
+            <p className="font-mono text-xs uppercase tracking-wider text-brand">Como foi criado</p>
             <h2 id={`proc-${video.id}`} className="mt-1 text-xl font-bold">
               {video.title}
             </h2>

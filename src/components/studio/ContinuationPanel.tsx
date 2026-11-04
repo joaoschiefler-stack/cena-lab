@@ -41,7 +41,7 @@ export function ContinuationPanel({ draft, onChange, onSave, onExit, showDays }:
     <section aria-labelledby="continuation-title" className="anim-fade-up mb-10 rounded-2xl border border-brand/40 bg-brand-soft/40 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-brand">
+          <p className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-brand">
             <Layers className="h-3.5 w-3.5" aria-hidden="true" /> Continuar esta história
           </p>
           <h2 id="continuation-title" className="mt-1 text-xl font-semibold tracking-tight">
@@ -86,7 +86,7 @@ export function ContinuationPanel({ draft, onChange, onSave, onExit, showDays }:
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
-          <h3 className="font-mono text-[11px] uppercase tracking-wider text-subtle">Ficha da série</h3>
+          <h3 className="font-mono text-xs uppercase tracking-wider text-subtle">Ficha da série</h3>
           <TextField id="s-title" label="Título" value={draft.title} onChange={(title) => set({ title })} max={LIMITS.seriesTitleMax} />
           <TextField
             id="s-goal"
@@ -119,7 +119,7 @@ export function ContinuationPanel({ draft, onChange, onSave, onExit, showDays }:
         </div>
 
         <div className="space-y-3">
-          <h3 className="font-mono text-[11px] uppercase tracking-wider text-subtle">Episódio {ep.number}: o que aconteceu</h3>
+          <h3 className="font-mono text-xs uppercase tracking-wider text-subtle">Episódio {ep.number}: o que aconteceu</h3>
           <TextField
             id="e-summary"
             label="Resumo"

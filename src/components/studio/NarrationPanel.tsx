@@ -45,7 +45,7 @@ export function NarrationPanel({ config, title, slug }: { config: StudioConfig; 
           <Mic className="h-4 w-4 text-brand" aria-hidden="true" />
           Narração e áudio
         </h2>
-        <span className="font-mono text-[11px] text-subtle">roteiro separado do prompt</span>
+        <span className="font-mono text-xs text-subtle">roteiro separado do prompt</span>
       </div>
 
       <div className="space-y-4 p-4">
@@ -80,7 +80,7 @@ export function NarrationPanel({ config, title, slug }: { config: StudioConfig; 
           <>
             {lineCount > 0 && (
               <div>
-                <p className="mb-2 font-mono text-[11px] text-subtle">
+                <p className="mb-2 font-mono text-xs text-subtle">
                   {parsed.durationSec !== null && <>~{fmt(parsed.durationSec)} de fala · </>}
                   {parsed.scenes.length} {parsed.scenes.length === 1 ? "cena" : "cenas"} · {lineCount}{" "}
                   {lineCount === 1 ? "fala" : "falas"} · {speakers.join(", ")}
@@ -88,13 +88,13 @@ export function NarrationPanel({ config, title, slug }: { config: StudioConfig; 
                 <ul className="scroll-thin max-h-80 space-y-3 overflow-auto rounded-xl border border-line bg-base p-3" aria-label="Falas organizadas por cena">
                   {parsed.scenes.map((s, i) => (
                     <li key={`${s.id}-${i}`}>
-                      <p className="font-mono text-[10px] uppercase tracking-wide text-brand">
+                      <p className="font-mono text-xs uppercase tracking-wide text-brand">
                         {s.id ?? "sem cena"}
                         {s.start !== null && ` · ${fmt(s.start)}–${fmt(s.end)}`}
                       </p>
                       {s.lines.map((l, j) => (
                         <p key={j} className="mt-1 text-sm leading-relaxed text-fg">
-                          <span className="mr-1.5 rounded bg-raised px-1.5 py-0.5 font-mono text-[10px] text-muted">{l.speaker}</span>
+                          <span className="mr-1.5 rounded bg-raised px-1.5 py-0.5 font-mono text-xs text-muted">{l.speaker}</span>
                           {l.direction && <span className="mr-1 text-xs italic text-subtle">({l.direction})</span>}
                           {l.text}
                         </p>

@@ -7,7 +7,7 @@ export function FieldLegend({ step, children, hint }: { step?: string; children:
   return (
     <legend className="mb-3 flex w-full items-baseline justify-between gap-3">
       <span className="flex items-baseline gap-2 text-sm font-medium text-fg">
-        {step && <span className="font-mono text-[11px] text-brand">{step}</span>}
+        {step && <span className="font-mono text-xs text-brand">{step}</span>}
         {children}
       </span>
       {hint && <span className="text-xs text-subtle">{hint}</span>}
@@ -222,7 +222,7 @@ export function TextField({
         <p id={`${id}-error`} role="alert" className="text-xs text-danger">
           {error ?? ""}
         </p>
-        <span className={`font-mono text-[11px] ${length > max ? "text-danger" : "text-subtle"}`}>
+        <span className={`font-mono text-xs ${length > max ? "text-danger" : "text-subtle"}`}>
           {length}/{max}
         </span>
       </div>

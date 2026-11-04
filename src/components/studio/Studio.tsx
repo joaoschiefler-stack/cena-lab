@@ -85,7 +85,8 @@ export function Studio({ header }: { header?: ReactNode }) {
       return;
     }
     if (Object.keys(found).length) {
-      document.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
+      // Depois da renderização: o campo já está marcado e o grupo recolhido que o contém, aberto.
+      requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-invalid='true']")?.focus());
       return;
     }
     if (continuation && next.series) {

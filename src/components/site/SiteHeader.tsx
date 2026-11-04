@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ButtonLink } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
-import { NAV_LINKS } from "@/lib/site";
+import { navLinks } from "@/lib/site";
 
-export function SiteHeader() {
+export function SiteHeader({ hasVideos }: { hasVideos: boolean }) {
   const pathname = usePathname();
+  const links = navLinks(hasVideos);
   const [open, setOpen] = useState(false);
 
   return (
@@ -18,7 +19,7 @@ export function SiteHeader() {
         <Logo />
 
         <nav aria-label="Principal" className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((link) => {
+          {links.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
@@ -58,7 +59,7 @@ export function SiteHeader() {
 
       {open && (
         <nav id="menu-mobile" aria-label="Principal (celular)" className="anim-fade-up border-t border-line bg-surface px-4 pb-4 pt-2 md:hidden">
-          {NAV_LINKS.map((link) => (
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}

@@ -22,9 +22,9 @@ export function TimelineBar({ plan, animated = false, compact = false }: { plan:
               style={{ flexGrow: b.endFrame - b.startFrame, flexBasis: 0, minWidth: decision ? 30 : undefined }}
             >
               {decision ? (
-                <span className="font-mono text-[10px] font-bold text-fg">A/B</span>
+                <span className="font-mono text-xs font-bold text-fg">A/B</span>
               ) : (
-                !compact && <span className={`truncate text-[10px] font-medium ${i < 2 ? "text-white" : "text-fg"}`}>{b.name}</span>
+                !compact && <span className={`truncate text-xs font-medium ${i < 2 ? "text-white" : "text-fg"}`}>{b.name}</span>
               )}
             </div>
           );
@@ -33,7 +33,7 @@ export function TimelineBar({ plan, animated = false, compact = false }: { plan:
           <div className="anim-playhead pointer-events-none absolute inset-y-0 w-0.5 bg-fg" aria-hidden="true" />
         )}
       </div>
-      <div className="mt-1.5 flex justify-between font-mono text-[10px] text-subtle" aria-hidden="true">
+      <div className="mt-1.5 flex justify-between font-mono text-xs text-subtle" aria-hidden="true">
         <span>{tc(0, plan.fps)}</span>
         <span>{plan.fps} fps · {plan.totalFrames} frames</span>
         <span>{tc(plan.totalFrames, plan.fps)}</span>

@@ -4,6 +4,7 @@ import { SITE } from "@/lib/site";
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/" },
-    sitemap: `${SITE.url}/sitemap.xml`,
+    // Só anuncia o sitemap quando há uma URL pública configurada (nunca localhost).
+    ...(SITE.publicUrl ? { sitemap: `${SITE.publicUrl}/sitemap.xml`, host: SITE.publicUrl } : {}),
   };
 }

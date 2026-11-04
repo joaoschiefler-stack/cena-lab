@@ -148,7 +148,7 @@ export function StoryTypeFields({ config, errors, onChange }: Omit<Props, "conti
   const days = config.challengeDays ?? detected;
   return (
     <fieldset className="space-y-3">
-      <FieldLegend step="03" hint="Muda as regras narrativas do prompt">
+      <FieldLegend hint="Muda as regras narrativas do prompt">
         Tipo de história
       </FieldLegend>
       <Chips

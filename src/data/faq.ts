@@ -5,7 +5,7 @@ export const FAQ = [
   },
   {
     q: "Preciso saber programar?",
-    a: "Para o modo Claude Artifacts, não: você cola o prompt no Claude e a animação aparece no chat. O modo Claude Code + Remotion exige instalar o Node.js e usar o terminal, mas o próprio prompt pede ao Claude que verifique o ambiente e explique os comandos.",
+    a: "Não. No modo padrão (Claude Artifacts), você cola o prompt no Claude e a animação aparece no chat. O modo Claude Code + Remotion usa o terminal; o passo a passo está em “Como funciona”.",
   },
   {
     q: "Como transformo a animação em um MP4?",
@@ -13,7 +13,7 @@ export const FAQ = [
   },
   {
     q: "Dá para fazer histórias com enquete A/B e séries?",
-    a: "Sim. No estúdio, escolha “Final interativo A/B” ou “Série em episódios”. O prompt faz o Claude terminar o vídeo num quadro de decisão (pergunta, A, B e “Comenta A ou B”) sem resolver a escolha, e entregar uma Ficha de continuidade. Você cola essa ficha no CENA LAB, marca a alternativa vencedora e gera o próximo episódio com os mesmos personagens. As opções são para votação nos comentários; o vídeo não tem botões clicáveis.",
+    a: "Sim. Com “Final interativo A/B”, o vídeo termina numa pergunta com duas opções para o público votar nos comentários (não há botões clicáveis no vídeo). Depois, em “Continuar esta história”, você marca a opção vencedora e gera o próximo episódio com os mesmos personagens.",
   },
   {
     q: "Preciso de uma conta paga do Claude?",
@@ -29,6 +29,6 @@ export const FAQ = [
   },
   {
     q: "Minhas ideias ficam salvas em algum servidor?",
-    a: "Não. O prompt é montado no seu navegador e o histórico fica apenas no armazenamento local do seu navegador, e você pode apagá-lo quando quiser.",
+    a: "Não. O prompt é montado no seu navegador. Histórico, séries e roteiros de narração ficam apenas no armazenamento local do seu navegador, e você pode apagá-los quando quiser.",
   },
 ];

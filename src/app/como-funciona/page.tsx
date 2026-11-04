@@ -42,9 +42,9 @@ export default function HowItWorksPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
       <header>
-        <p className="font-mono text-[11px] uppercase tracking-wider text-brand">Como funciona</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Do prompt à animação</h1>
-        <p className="mt-3 max-w-2xl text-muted">
+        <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-brand">Como funciona</p>
+        <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl">Do prompt à animação</h1>
+        <p className="mt-4 max-w-2xl text-lg text-muted">
           O CENA LAB faz a direção técnica e criativa: transforma sua ideia em instruções de produção precisas. O Claude faz
           a execução. Nada é gerado, processado ou hospedado aqui.
         </p>
@@ -66,7 +66,7 @@ export default function HowItWorksPage() {
       </ol>
 
       <section aria-labelledby="modos" className="mt-16">
-        <h2 id="modos" className="text-2xl font-semibold tracking-tight">
+        <h2 id="modos" className="text-2xl font-bold">
           Claude Artifacts ou Claude Code?
         </h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -111,7 +111,7 @@ export default function HowItWorksPage() {
       </section>
 
       <section aria-labelledby="series" className="mt-16">
-        <h2 id="series" className="text-2xl font-semibold tracking-tight">
+        <h2 id="series" className="text-2xl font-bold">
           Finais interativos e séries
         </h2>
         <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
