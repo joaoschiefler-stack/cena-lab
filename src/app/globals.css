@@ -1,26 +1,185 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * CENA LAB — sistema de identidade
+ *
+ * Estúdio criativo claro: fundo azul-gelo, superfícies brancas, azul como cor
+ * de interação e rosa como cor narrativa (detalhes, ilustrações, destaques).
+ * Tipografia: Sora (títulos), DM Sans (interface), DM Mono (timecodes/rótulos).
+ *
+ * Todos os componentes usam estes tokens; não use cores soltas nos componentes.
+ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-sora);
+  --font-sans: var(--font-dm-sans);
+  --font-mono: var(--font-dm-mono);
+
+  /* Superfícies */
+  --color-base: #f8faff;
+  --color-surface: #ffffff;
+  --color-raised: #f1f4fc;
+  --color-line: #dde5f4;
+  --color-line-strong: #c6d2ea;
+
+  /* Texto */
+  --color-fg: #192447;
+  --color-muted: #66718c;
+  --color-subtle: #6f7a94;
+
+  /* Marca */
+  --color-brand: #3158dc;
+  --color-brand-strong: #2446bd;
+  --color-brand-soft: #edf2ff;
+  --color-pink: #f5a7ca;
+  --color-pink-soft: #fdeef5;
+  --color-pink-ink: #a8326c;
+
+  /* Estados */
+  --color-ok: #17845a;
+  --color-danger: #c8323f;
+  --color-warn: #b7791f;
+  --color-warn-soft: #fff6e6;
+
+  /* Sombras suaves (nunca pretas e pesadas) */
+  --shadow-card: 0 1px 2px rgb(25 36 71 / 0.04), 0 8px 24px -12px rgb(25 36 71 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(25 36 71 / 0.05), 0 18px 40px -18px rgb(49 88 220 / 0.28);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  color-scheme: light;
+}
+
+html {
+  background: var(--color-base);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-base);
+  color: var(--color-fg);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-sora), var(--font-dm-sans), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--color-pink);
+  color: var(--color-fg);
+}
+
+/* Foco visível consistente para navegação por teclado */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Grade de pontos suave (papel de storyboard) */
+.bg-dots {
+  background-image: radial-gradient(rgb(49 88 220 / 0.13) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 30%, #000 35%, transparent 100%);
+}
+
+/* Faixa de perfurações de filme (detalhe de marca) */
+.film-strip {
+  background-image: radial-gradient(circle, rgb(49 88 220 / 0.18) 2.5px, transparent 3px);
+  background-size: 16px 10px;
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
+/* Cartões que reagem ao hover sem saltar */
+.card-hover {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  border-color: rgb(49 88 220 / 0.35);
+}
+
+/* Scrollbar discreta para áreas de código */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(25 36 71 / 0.18) transparent;
+}
+
+/* ---------- Ilustrações animadas (somente decorativas) ---------- */
+
+@keyframes walk-leg-a {
+  0%, 100% { transform: rotate(22deg); }
+  50% { transform: rotate(-22deg); }
+}
+@keyframes walk-leg-b {
+  0%, 100% { transform: rotate(-22deg); }
+  50% { transform: rotate(22deg); }
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-400px); }
+}
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  45% { opacity: 1; }
+  47% { opacity: 0.35; }
+  49% { opacity: 1; }
+  72% { opacity: 0.6; }
+  74% { opacity: 1; }
+}
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-14px) rotate(2deg); }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+@keyframes playhead {
+  from { left: 0%; }
+  to { left: 100%; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.anim-leg-a { animation: walk-leg-a 0.9s ease-in-out infinite; transform-box: fill-box; transform-origin: top center; }
+.anim-leg-b { animation: walk-leg-b 0.9s ease-in-out infinite; transform-box: fill-box; transform-origin: top center; }
+.anim-bob { animation: bob 0.45s ease-in-out infinite; }
+.anim-drift { animation: drift 18s linear infinite; }
+.anim-drift-slow { animation: drift 40s linear infinite; }
+.anim-blink { animation: blink 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.anim-flicker { animation: flicker 3.2s steps(1) infinite; }
+.anim-pulse { animation: soft-pulse 1.8s ease-in-out infinite; }
+.anim-float { animation: float 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.anim-sway { animation: sway 4s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom center; }
+.anim-playhead { animation: playhead 12s linear infinite; }
+.anim-fade-up { animation: fade-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .card-hover:hover { transform: none; }
 }
