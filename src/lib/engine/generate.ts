@@ -1,3 +1,4 @@
+import "server-only";
 import { analyzeIdea } from "./analyze-idea";
 import { ENDINGS, FORMATS, HOOKS, MODES, PACINGS } from "./presets/options";
 import { STORY_TYPES } from "./presets/story-types";
@@ -25,18 +26,11 @@ import type {
   TimingPlan,
 } from "./types";
 import { normalizeConfig, validateConfig } from "./validate";
+import { isEpisodic, isInteractive } from "@/lib/catalog/format";
+
+export { isEpisodic, isInteractive };
 
 export class InvalidConfigError extends Error {}
-
-/** O vídeo termina com quadro de decisão A/B? */
-export function isInteractive(config: Pick<StudioConfig, "format" | "seriesPoll">): boolean {
-  return config.format === "interativo" || (config.format === "serie" && config.seriesPoll);
-}
-
-/** O vídeo faz parte de uma narrativa em episódios? */
-export function isEpisodic(config: Pick<StudioConfig, "format" | "series">): boolean {
-  return config.format !== "completa" || config.series !== null;
-}
 
 /** Tempo da história: prazo do desafio, período do vídeo e preset narrativo adaptado a ele. */
 function resolveTime(config: StudioConfig, analysis: IdeaAnalysis) {

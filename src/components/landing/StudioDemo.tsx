@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { CartoonScene, StickmanScene } from "@/components/illustrations/Scenes";
 import { TimelineBar } from "@/components/TimelineBar";
 import { ButtonLink } from "@/components/ui/Button";
-import type { DurationSec, StoryFormat, StyleId } from "@/lib/engine";
+import type { DurationSec, StoryFormat, StyleId } from "@/lib/catalog";
 import type { DemoVariant } from "@/lib/landing-demo";
 
 interface Choice<T> {

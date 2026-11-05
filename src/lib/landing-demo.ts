@@ -1,5 +1,7 @@
-import { DEFAULT_CONFIG, DURATIONS, FORMATS, STYLES, generateMasterPrompt } from "@/lib/engine";
-import type { DurationSec, StoryFormat, StyleId, TimingPlan } from "@/lib/engine";
+import "server-only";
+import { DEFAULT_CONFIG, DURATIONS, FORMATS, STYLES, toPlanPreview } from "@/lib/catalog";
+import type { DurationSec, PlanPreview, StoryFormat, StyleId } from "@/lib/catalog";
+import { generateMasterPrompt } from "@/lib/engine";
 import { studioHref } from "@/lib/studio-link";
 
 /**
@@ -7,7 +9,8 @@ import { studioHref } from "@/lib/studio-link";
  * Calculados no build com o MESMO motor do estúdio (nada é escrito à mão):
  * cada combinação de formato × estilo × duração vira um resumo do prompt real
  * (seções, cenas, palavras e o esqueleto temporal do storyboard).
- * Só o resumo vai para o navegador, não o motor.
+ * Só o resumo vai para o navegador, não o motor: títulos das seções e a
+ * linha do tempo sem a função narrativa de cada trecho.
  */
 export const DEMO_IDEA = "Um gato decide virar chef e tem 7 dias para vencer o concurso do bairro.";
 
@@ -20,7 +23,7 @@ export interface DemoVariant {
   sections: string[];
   scenes: { min: number; max: number };
   words: number;
-  plan: TimingPlan;
+  plan: PlanPreview;
   /** Estúdio aberto com a mesma ideia e as mesmas escolhas. */
   href: string;
 }
@@ -39,7 +42,7 @@ export function buildDemoVariants(idea = DEMO_IDEA): DemoVariant[] {
           sections: result.sections.map((s) => s.title),
           scenes: { min: result.plan.sceneCount.min, max: result.plan.sceneCount.max },
           words: result.wordCount,
-          plan: result.plan,
+          plan: toPlanPreview(result.plan),
           href: studioHref({ idea, format, style, duration }),
         });
       }

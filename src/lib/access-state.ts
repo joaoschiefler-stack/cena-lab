@@ -19,11 +19,11 @@ export interface Access {
 }
 
 /**
- * A geração premium ainda NÃO é protegida: o engine roda no navegador e
- * está no bundle público. Enquanto isso for `false`, nenhuma tela pode
- * alegar proteção, e o estúdio segue aberto como demonstração.
+ * A geração premium é protegida: o engine roda só no servidor e cada
+ * pedido de geração confere sessão e licença (src/lib/generation). O
+ * estúdio continua visível para todos, mas só gera com licença ativa.
  */
-export const PREMIUM_GENERATION_ENFORCED = false;
+export const PREMIUM_GENERATION_ENFORCED = true;
 
 export const PLAN_NAMES: Record<string, string> = { fundador: "CENA LAB Fundador" };
 

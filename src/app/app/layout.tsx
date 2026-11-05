@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import { AppHeader } from "@/components/dashboard/AppHeader";
 import { dashboardGate } from "@/lib/dashboard-access";
+import { currentDevAccess } from "@/lib/generation/dev-access";
 import { getViewer } from "@/lib/viewer";
 
 async function ResolvedHeader() {
-  const gate = dashboardGate(await getViewer());
+  const gate = dashboardGate(await getViewer(), currentDevAccess());
   return gate.kind === "render" ? <AppHeader email={gate.email} mode={gate.mode} /> : <AppHeader email={null} mode="loading" />;
 }
 

@@ -1,5 +1,5 @@
-import { DURATIONS, FORMATS, LIMITS, STYLES } from "@/lib/engine";
-import type { DurationSec, StoryFormat, StudioConfig, StyleId } from "@/lib/engine";
+import { DURATIONS, FORMATS, LIMITS, STYLES } from "@/lib/catalog";
+import type { DurationSec, StoryFormat, StudioConfig, StyleId } from "@/lib/catalog";
 
 /**
  * Links para o estúdio já configurado (cards de formato e demonstração da homepage).

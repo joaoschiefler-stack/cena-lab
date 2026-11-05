@@ -11,8 +11,8 @@ import {
   TEXT_MODES,
   isEpisodic,
   isInteractive,
-} from "@/lib/engine";
-import type { ConfigErrors, StudioConfig } from "@/lib/engine";
+} from "@/lib/catalog";
+import type { ConfigErrors, StudioConfig } from "@/lib/catalog";
 import { Checkbox, FieldLegend, Segmented, TextField } from "./controls";
 
 interface Props {

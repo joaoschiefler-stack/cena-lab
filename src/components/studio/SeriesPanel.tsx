@@ -1,7 +1,7 @@
 "use client";
 
 import { Layers, X } from "lucide-react";
-import { STYLES } from "@/lib/engine";
+import { STYLES } from "@/lib/catalog";
 import { removeSeries, useSeries } from "@/lib/series";
 import type { SeriesRecord } from "@/lib/series-draft";
 

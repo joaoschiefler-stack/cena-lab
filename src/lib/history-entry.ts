@@ -1,5 +1,5 @@
-import { normalizeConfig } from "@/lib/engine";
-import type { StudioConfig } from "@/lib/engine";
+import { normalizeConfig } from "@/lib/catalog";
+import type { StudioConfig } from "@/lib/catalog";
 
 /**
  * Uma geração do histórico (lógica pura, usada no navegador e no servidor).

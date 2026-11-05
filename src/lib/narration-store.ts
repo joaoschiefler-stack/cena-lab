@@ -1,7 +1,7 @@
 "use client";
 
-import type { StudioConfig } from "@/lib/engine";
-import { stableHash } from "@/lib/engine/text";
+import type { StudioConfig } from "@/lib/catalog";
+import { stableHash } from "@/lib/catalog";
 import { createLocalStore } from "@/lib/local-store";
 
 /**

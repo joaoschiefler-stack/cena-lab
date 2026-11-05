@@ -13,7 +13,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/Logo";
 import { HOME_FAQ } from "@/data/faq";
 import { FOUNDER_PLAN } from "@/data/plans";
-import { DURATIONS, STYLE_LIST } from "@/lib/engine";
+import { DURATIONS, STYLE_LIST } from "@/lib/catalog";
 import { featuredVideo, publishedVideos } from "@/lib/gallery";
 import { DEMO_IDEA, buildDemoVariants } from "@/lib/landing-demo";
 import { getSalesConfig } from "@/lib/sales";

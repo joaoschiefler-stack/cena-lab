@@ -3,8 +3,8 @@
 import { ClipboardPaste, Layers, Save, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { LIMITS, parseContinuitySheet } from "@/lib/engine";
-import type { Choice } from "@/lib/engine";
+import { LIMITS, parseContinuitySheet } from "@/lib/catalog";
+import type { Choice } from "@/lib/catalog";
 import { applyParsedSheet } from "@/lib/series-draft";
 import type { ContinuationDraft } from "@/lib/series-draft";
 import { FieldLegend, Segmented, TextField } from "./controls";

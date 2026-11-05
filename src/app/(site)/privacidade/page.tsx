@@ -9,14 +9,15 @@ const SECTIONS = [
   {
     title: "Resumo",
     body: [
-      "O estúdio funciona sem conta: suas ideias e prompts são montados no seu navegador e não são enviados para nenhum servidor nosso nem para serviços de terceiros.",
+      "Para gerar o prompt, o estúdio envia a configuração que você montou (ideia e opções) ao servidor do CENA LAB, que confere o seu acesso e devolve o prompt. Não guardamos esse conteúdo e não o enviamos a serviços de terceiros.",
       "Se você criar uma conta, guardamos o mínimo necessário para o login e para o seu acesso ao plano, como descrito em “Contas”.",
     ],
   },
   {
     title: "Onde o prompt é gerado",
     body: [
-      "O prompt mestre é montado por código que roda no seu navegador, a partir do que você digita no estúdio. O texto da sua ideia não sai do seu dispositivo durante a geração.",
+      "O prompt mestre é montado no servidor do CENA LAB, a partir do que você configura no estúdio, e só para contas com acesso ativo. A configuração é usada apenas para responder àquele pedido: não fica gravada no banco de dados nem em registros nossos.",
+      "Enquanto você escolhe as opções, o estúdio também pede ao servidor a linha do tempo da prévia (trechos e duração). Esse pedido não exige conta e também não é guardado.",
     ],
   },
   {
@@ -77,7 +78,7 @@ export default function PrivacyPage() {
     <div className="mx-auto max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
       <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-brand">Privacidade</p>
       <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl">Política de privacidade</h1>
-      <p className="mt-4 text-sm text-muted">Válida para a versão atual do CENA LAB: estúdio aberto para teste, contas opcionais e vendas ainda não abertas.</p>
+      <p className="mt-4 text-sm text-muted">Válida para a versão atual do CENA LAB: geração do prompt no servidor para contas com acesso ativo e vendas ainda não abertas.</p>
       <div className="mt-10 space-y-10">
         {SECTIONS.map((s) => (
           <section key={s.title}>

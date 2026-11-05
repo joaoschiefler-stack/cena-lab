@@ -1,4 +1,4 @@
-import type { StudioConfig } from "@/lib/engine";
+import type { StudioConfig } from "@/lib/catalog";
 import { normalizeHistoryEntry } from "@/lib/history-entry";
 import type { HistoryEntry } from "@/lib/history-entry";
 import { normalizeRecord } from "@/lib/series-draft";

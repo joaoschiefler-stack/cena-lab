@@ -19,7 +19,7 @@ export const FAQ = [
   },
   {
     q: "Preciso de uma conta paga do Claude?",
-    a: "A conta no Claude é sua e não está incluída no CENA LAB. Recursos como artifacts e Claude Code, e os limites de uso, dependem do plano da sua conta no Claude — confira no site oficial. Hoje o estúdio do CENA LAB pode ser testado sem cadastro; o plano CENA LAB Fundador está em pré-lançamento.",
+    a: "A conta no Claude é sua e não está incluída no CENA LAB. Recursos como artifacts e Claude Code, e os limites de uso, dependem do plano da sua conta no Claude — confira no site oficial. Qualquer pessoa pode abrir o estúdio e ver as opções; gerar o prompt completo exige o acesso CENA LAB Fundador, que está em pré-lançamento.",
   },
   {
     q: "O resultado vai viralizar?",
@@ -31,7 +31,7 @@ export const FAQ = [
   },
   {
     q: "Minhas ideias ficam salvas em algum servidor?",
-    a: "Não. O prompt é montado no seu navegador. Histórico, séries e roteiros de narração ficam apenas no armazenamento local do seu navegador, e você pode apagá-los quando quiser. Se criar uma conta, guardamos o e-mail e o status do seu acesso; histórias só vão para a conta quando você pede, no painel.",
+    a: "Não. Para gerar, sua configuração é enviada ao servidor do CENA LAB, que confere o seu acesso, monta o prompt e o devolve sem guardar a ideia nem o texto. Histórico, séries e roteiros de narração ficam apenas no armazenamento local do seu navegador, e você pode apagá-los quando quiser. Se criar uma conta, guardamos o e-mail e o status do seu acesso; histórias só vão para a conta quando você pede, no painel.",
   },
 ];
 

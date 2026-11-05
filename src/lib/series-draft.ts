@@ -1,5 +1,5 @@
-import { analyzeIdea, buildContext, isInteractive, knownEndDay, LIMITS, normalizeConfig, normalizeSeries, resolveChallenge } from "@/lib/engine";
-import type { EpisodeLog, ParsedContinuity, SeriesContext, StudioConfig } from "@/lib/engine";
+import { isInteractive, LIMITS, normalizeConfig, normalizeSeries } from "@/lib/catalog";
+import type { EpisodeLog, ParsedContinuity, SeriesContext, StudioConfig } from "@/lib/catalog";
 
 /**
  * Lógica pura da "ficha da série" (sem acesso ao navegador).
@@ -7,7 +7,17 @@ import type { EpisodeLog, ParsedContinuity, SeriesContext, StudioConfig } from "
  * Fluxo: o criador gera o episódio N → produz o vídeo no Claude → volta,
  * registra o que aconteceu (ou cola a Ficha de continuidade) e escolhe A/B
  * → o CENA LAB gera o episódio N+1 com esses dados.
+ *
+ * O que depende do engine (cenários lidos na ideia, prazo do desafio, dia
+ * em que o episódio termina) chega pronto do servidor como `DraftFacts`.
  */
+
+/** Calculado no servidor (continuationFactsAction) para a configuração do episódio. */
+export interface DraftFacts {
+  knownDay: number | null;
+  settings: string;
+  challengeDays: number | null;
+}
 
 export interface SeriesRecord {
   id: string;
@@ -49,13 +59,8 @@ function decisionFromConfig(config: StudioConfig): Pick<EpisodeLog, "question" |
   return { question: config.decision.question, optionA: config.decision.optionA, optionB: config.decision.optionB };
 }
 
-/** Dia em que o episódio termina, quando a progressão o define (um dia por episódio ou intervalo de dias). */
-export function episodeKnownDay(config: StudioConfig): number | null {
-  return knownEndDay(buildContext(config).progression);
-}
-
 /** Rascunho a partir de um prompt recém-gerado. Usa só dados realmente disponíveis. */
-export function draftFromResult(config: StudioConfig, title: string, seriesId: string | null): ContinuationDraft {
+export function draftFromResult(config: StudioConfig, title: string, seriesId: string | null, facts: DraftFacts): ContinuationDraft {
   if (config.series) {
     return {
       seriesId,
@@ -65,11 +70,9 @@ export function draftFromResult(config: StudioConfig, title: string, seriesId: s
       settings: config.series.settings,
       goal: config.series.goal,
       earlier: config.series.previous,
-      current: { ...emptyEpisode(config.series.episodeNumber), ...decisionFromConfig(config), daysElapsed: episodeKnownDay(config) },
+      current: { ...emptyEpisode(config.series.episodeNumber), ...decisionFromConfig(config), daysElapsed: facts.knownDay },
     };
   }
-  const analysis = analyzeIdea(config.idea);
-  const challenge = resolveChallenge(config, analysis);
   const characters = [config.protagonist.trim(), config.traits.trim() && `Características fixas: ${config.traits.trim()}`]
     .filter(Boolean)
     .join("\n");
@@ -78,15 +81,30 @@ export function draftFromResult(config: StudioConfig, title: string, seriesId: s
     title: title.replace(/…$/, ""),
     idea: config.idea,
     characters,
-    settings: analysis.settings.map((s) => s.label).join(", "),
-    goal: challenge ? `Completar o desafio de ${challenge.totalDays} dias.` : "",
+    settings: facts.settings,
+    goal: facts.challengeDays ? `Completar o desafio de ${facts.challengeDays} dias.` : "",
     earlier: [],
-    current: { ...emptyEpisode(1), ...decisionFromConfig(config), daysElapsed: episodeKnownDay(config) },
+    current: { ...emptyEpisode(1), ...decisionFromConfig(config), daysElapsed: facts.knownDay },
   };
 }
 
-/** Rascunho a partir de uma série salva. */
-export function draftFromRecord(record: SeriesRecord): ContinuationDraft {
+/**
+ * Configuração do último episódio gerado quando ele ainda não foi
+ * registrado (o servidor calcula o dia final dela); `null` se não há pendência.
+ */
+export function pendingEpisodeConfig(record: SeriesRecord): StudioConfig | null {
+  const registered = record.episodes.at(-1)?.number ?? 0;
+  if (record.lastGenerated <= registered) return null;
+  return normalizeConfig({
+    ...record.lastConfig,
+    series: record.lastGenerated >= 2
+      ? { title: record.title, episodeNumber: record.lastGenerated, characters: record.characters, settings: record.settings, goal: record.goal, previous: record.episodes }
+      : null,
+  });
+}
+
+/** Rascunho a partir de uma série salva. `knownDay`: dia final do episódio pendente (veja pendingEpisodeConfig). */
+export function draftFromRecord(record: SeriesRecord, knownDay: number | null = null): ContinuationDraft {
   const base = {
     seriesId: record.id,
     title: record.title,
@@ -95,19 +113,12 @@ export function draftFromRecord(record: SeriesRecord): ContinuationDraft {
     settings: record.settings,
     goal: record.goal,
   };
-  const registered = record.episodes.at(-1)?.number ?? 0;
-  if (record.lastGenerated > registered) {
+  if (pendingEpisodeConfig(record)) {
     // O último episódio gerado ainda não foi registrado.
-    const generated = normalizeConfig({
-      ...record.lastConfig,
-      series: record.lastGenerated >= 2
-        ? { title: record.title, episodeNumber: record.lastGenerated, characters: record.characters, settings: record.settings, goal: record.goal, previous: record.episodes }
-        : null,
-    });
     return {
       ...base,
       earlier: record.episodes,
-      current: { ...emptyEpisode(record.lastGenerated), ...decisionFromConfig(record.lastConfig), daysElapsed: episodeKnownDay(generated) },
+      current: { ...emptyEpisode(record.lastGenerated), ...decisionFromConfig(record.lastConfig), daysElapsed: knownDay },
     };
   }
   return { ...base, earlier: record.episodes.slice(0, -1), current: record.episodes.at(-1) ?? emptyEpisode(1) };

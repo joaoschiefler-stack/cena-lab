@@ -1,5 +1,5 @@
-import { FORMATS, STYLES, isInteractive } from "@/lib/engine";
-import type { EpisodeLog } from "@/lib/engine";
+import { FORMATS, STYLES, isInteractive } from "@/lib/catalog";
+import type { EpisodeLog } from "@/lib/catalog";
 import type { HistoryEntry } from "@/lib/history-entry";
 import type { SeriesRecord } from "@/lib/series-draft";
 

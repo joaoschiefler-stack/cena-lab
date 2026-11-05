@@ -4,8 +4,8 @@ import { AlertTriangle, Check, Copy, Download, ExternalLink, Mic, RotateCcw, Vol
 import { useMemo, useRef, useState } from "react";
 import { Button, buttonClass } from "@/components/ui/Button";
 import { copyText, downloadText } from "@/lib/browser";
-import { narrationSpeakers, narrationSpeechText, narrationToTxt, parseNarrationScript } from "@/lib/engine";
-import type { StudioConfig } from "@/lib/engine";
+import { narrationSpeakers, narrationSpeechText, narrationToTxt, parseNarrationScript } from "@/lib/catalog";
+import type { StudioConfig } from "@/lib/catalog";
 import { narrationKey, saveNarrationDraft, useNarrationDrafts } from "@/lib/narration-store";
 
 const ELEVENLABS_URL = "https://elevenlabs.io";

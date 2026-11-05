@@ -9,8 +9,8 @@ import { buttonClass } from "@/components/ui/Button";
 import { copyText } from "@/lib/browser";
 import { deleteAccountStoriesAction } from "@/lib/cloud/actions";
 import { relatedPrompts, seriesOfEntry, summarizePrompt, summarizeSeries } from "@/lib/dashboard-stories";
-import { generateMasterPrompt } from "@/lib/engine";
-import type { StyleId } from "@/lib/engine";
+import type { StyleId } from "@/lib/catalog";
+import { generatePromptAction } from "@/lib/generation/actions";
 import { removeHistoryEntry, useHistory } from "@/lib/history";
 import type { HistoryEntry } from "@/lib/history";
 import { removeSeries, useSeries } from "@/lib/series";
@@ -39,20 +39,40 @@ function StyleThumb({ style, uid }: { style: StyleId; uid: string }) {
   );
 }
 
+const COPY_LABELS = {
+  idle: "Copiar prompt",
+  busy: "Gerando…",
+  ok: "Copiado",
+  fail: "Não foi possível copiar",
+  denied: "Sem acesso para gerar",
+  unavailable: "Geração indisponível agora",
+} as const;
+
+/** O prompt é gerado de novo no servidor (mesma configuração, mesmo texto) e então copiado. */
 function CopyPromptButton({ entry }: { entry: HistoryEntry }) {
-  const [state, setState] = useState<"idle" | "ok" | "fail">("idle");
+  const [state, setState] = useState<keyof typeof COPY_LABELS>("idle");
   return (
     <button
       type="button"
       className={buttonClass("secondary", "sm")}
+      disabled={state === "busy"}
       onClick={async () => {
-        const ok = await copyText(generateMasterPrompt(entry.config).prompt);
-        setState(ok ? "ok" : "fail");
-        window.setTimeout(() => setState("idle"), 2200);
+        setState("busy");
+        let next: keyof typeof COPY_LABELS = "fail";
+        try {
+          const reply = await generatePromptAction(entry.config);
+          if (reply.ok) next = (await copyText(reply.result.prompt)) ? "ok" : "fail";
+          else if (reply.reason === "login_required" || reply.reason === "no_license" || reply.reason === "revoked") next = "denied";
+          else if (reply.reason === "unavailable") next = "unavailable";
+        } catch {
+          next = "fail";
+        }
+        setState(next);
+        window.setTimeout(() => setState("idle"), 2600);
       }}
     >
       {state === "ok" ? <Check className="h-4 w-4 text-ok" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-      <span aria-live="polite">{state === "ok" ? "Copiado" : state === "fail" ? "Não foi possível copiar" : "Copiar prompt"}</span>
+      <span aria-live="polite">{COPY_LABELS[state]}</span>
     </button>
   );
 }

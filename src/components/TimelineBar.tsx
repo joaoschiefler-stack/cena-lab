@@ -1,4 +1,4 @@
-import type { TimingPlan } from "@/lib/engine";
+import type { PlanPreview } from "@/lib/catalog";
 
 const SHADES = ["bg-brand", "bg-brand/75", "bg-brand/55", "bg-brand/40", "bg-brand/28", "bg-brand/18"];
 
@@ -9,7 +9,7 @@ function tc(frame: number, fps: number) {
 }
 
 /** Visualização dos trechos narrativos do plano de tempo, com timecode. */
-export function TimelineBar({ plan, animated = false, compact = false }: { plan: TimingPlan; animated?: boolean; compact?: boolean }) {
+export function TimelineBar({ plan, animated = false, compact = false }: { plan: PlanPreview; animated?: boolean; compact?: boolean }) {
   return (
     <div>
       <div className="relative flex h-9 gap-[2px] overflow-hidden rounded-lg" role="img" aria-label={`Linha do tempo de ${plan.durationSec} segundos com ${plan.beats.length} trechos: ${plan.beats.map((b) => b.name).join(", ")}`}>

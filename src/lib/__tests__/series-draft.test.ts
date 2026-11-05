@@ -2,12 +2,21 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_CONFIG, generateMasterPrompt, parseContinuitySheet, type StudioConfig } from "@/lib/engine";
 import {
   applyParsedSheet,
-  draftFromRecord,
-  draftFromResult,
   nextEpisodeConfig,
   normalizeRecord,
   recordFromDraft,
 } from "@/lib/series-draft";
+import { continuationFacts } from "@/lib/generation/service";
+import { draftFromRecord as draftFromRecordBase, draftFromResult as draftFromResultBase, pendingEpisodeConfig } from "@/lib/series-draft";
+import type { SeriesRecord } from "@/lib/series-draft";
+
+// A ficha usa dados que o servidor calcula (continuationFactsAction); aqui, direto do núcleo.
+const fromResult = (config: StudioConfig, title: string, seriesId: string | null) =>
+  draftFromResultBase(config, title, seriesId, continuationFacts(config));
+const fromRecord = (record: SeriesRecord) => {
+  const pending = pendingEpisodeConfig(record);
+  return draftFromRecordBase(record, pending ? continuationFacts(pending).knownDay : null);
+};
 
 const ep1Config: StudioConfig = {
   ...DEFAULT_CONFIG,
@@ -36,7 +45,7 @@ B: Tomar banho
 
 describe("ciclo de continuidade da série", () => {
   it("o rascunho inicial usa apenas dados disponíveis", () => {
-    const d = draftFromResult(ep1Config, "Um homem tímido tem 30 dias", null);
+    const d = fromResult(ep1Config, "Um homem tímido tem 30 dias", null);
     expect(d.characters).toContain("Zé, 35 anos, camiseta laranja");
     expect(d.characters).toContain("Características fixas: óculos redondos");
     expect(d.goal).toBe("Completar o desafio de 30 dias.");
@@ -47,7 +56,7 @@ describe("ciclo de continuidade da série", () => {
   });
 
   it("decisão personalizada já vem preenchida", () => {
-    const d = draftFromResult(
+    const d = fromResult(
       { ...ep1Config, decisionMode: "personalizada", decision: { question: "Q?", optionA: "X", optionB: "Y" } },
       "t",
       null,
@@ -56,7 +65,7 @@ describe("ciclo de continuidade da série", () => {
   });
 
   it("ep1 → ficha colada → escolha B → ep2 → ep3 preserva tudo", () => {
-    let draft = draftFromResult(ep1Config, "t", null);
+    let draft = fromResult(ep1Config, "t", null);
     draft = applyParsedSheet(draft, parseContinuitySheet(claudeSheet));
     draft = { ...draft, current: { ...draft.current, chosen: "B", outcome: "B venceu." } };
 
@@ -77,7 +86,7 @@ describe("ciclo de continuidade da série", () => {
 
     // Salva, registra o episódio 2 e gera o 3.
     const record = recordFromDraft(draft, "s1", ep2, 2);
-    const draft2 = draftFromRecord(record);
+    const draft2 = fromRecord(record);
     expect(draft2.current.number).toBe(2);
     expect(draft2.earlier.map((e) => e.number)).toEqual([1]);
     const filled = {
@@ -96,9 +105,9 @@ describe("ciclo de continuidade da série", () => {
   });
 
   it("série salva sem gerar o próximo reabre no mesmo episódio", () => {
-    const draft = applyParsedSheet(draftFromResult(ep1Config, "t", null), parseContinuitySheet(claudeSheet));
+    const draft = applyParsedSheet(fromResult(ep1Config, "t", null), parseContinuitySheet(claudeSheet));
     const record = recordFromDraft(draft, "s1", ep1Config, 1);
-    const reopened = draftFromRecord(record);
+    const reopened = fromRecord(record);
     expect(reopened.current.number).toBe(1);
     expect(reopened.current.summary).toBe("Zé descobre o encontro e decide mudar.");
     expect(reopened.earlier).toEqual([]);

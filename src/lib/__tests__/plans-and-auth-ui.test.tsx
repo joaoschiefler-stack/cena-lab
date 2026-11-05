@@ -129,7 +129,8 @@ describe("área da conta", () => {
     expect(t).toContain("Revogada em");
   });
 
-  it("não alega proteção do gerador enquanto o engine roda no navegador", () => {
-    expect(render({ status: "active", user, license: null })).toContain("ainda não muda o que você pode gerar");
+  it("não diz mais que o estúdio gera para todos (o gerador agora exige licença)", () => {
+    expect(render({ status: "active", user, license: null })).not.toContain("ainda não muda o que você pode gerar");
+    expect(render({ status: "no_license", user, license: null })).not.toContain("estúdio está aberto para todos");
   });
 });

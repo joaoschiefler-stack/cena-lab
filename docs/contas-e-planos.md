@@ -10,9 +10,9 @@ Este guia cobre o que já está no código e o que falta conectar. Nada aqui ati
 | `/login`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha`, `/conta` | Prontas. Sem Supabase, mostram "Contas em configuração" e o formulário fica desativado. |
 | Sessão e verificação de acesso | No servidor (`getUser()` valida o token no Supabase). Nada depende de `localStorage`. |
 | Licenças | Tabelas e RLS na migration. Só leitura para o próprio usuário; escrita só no servidor com credencial administrativa. |
-| Painel `/app` | Pronto. Sem Supabase: "modo local" (só dados do navegador). Com Supabase: sem login → `/login?next=/app` (307 no proxy); sem licença ou revogada → `/conta` com aviso; licença ativa → painel. |
+| Painel `/app` | Pronto. Sem Supabase: em produção, "O painel abre junto com as contas"; em `next dev` com `CENA_DEV_PREMIUM_ACCESS=local`, "modo local de teste". Com Supabase: sem login → `/login?next=/app` (307 no proxy); sem licença ou revogada → `/conta` com aviso; licença ativa → painel. |
 | Histórias na conta | Tabelas `story_series` e `prompt_history` com RLS (dono lê/grava/apaga só as próprias linhas). Envio e recuperação só por clique no painel. |
-| Gerador premium | **Ainda não protegido.** O engine roda no navegador e está no bundle público; o estúdio segue aberto como demonstração (`PREMIUM_GENERATION_ENFORCED = false`). |
+| Gerador premium | **Protegido no servidor.** O engine saiu do bundle público; cada geração confere sessão e licença (`PREMIUM_GENERATION_ENFORCED = true`). Detalhes em [`PROTECAO_GERADOR_PREMIUM.md`](PROTECAO_GERADOR_PREMIUM.md). |
 | Kiwify | **Não integrada.** Só os pontos de integração estão preparados (veja a seção 5). |
 
 ## 2. Configurar o Supabase
@@ -26,7 +26,7 @@ Este guia cobre o que já está no código e o que falta conectar. Nada aqui ati
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```
    Em produção, configure as mesmas variáveis no provedor de hospedagem, com a URL pública real.
-4. Rode as migrations, **nesta ordem**: `supabase/migrations/20261104120000_profiles_and_licenses.sql` e `supabase/migrations/20261105120000_stories.sql`:
+4. Rode as migrations, **nesta ordem**: `supabase/migrations/20261104120000_profiles_and_licenses.sql`, `supabase/migrations/20261105120000_stories.sql` e `supabase/migrations/20261105180000_revoke_truncate.sql`:
    - pelo **SQL Editor** do painel (cole e execute), ou
    - pela Supabase CLI: `supabase link` e depois `supabase db push`.
 5. Em **Authentication → URL Configuration**:
@@ -39,7 +39,7 @@ Este guia cobre o que já está no código e o que falta conectar. Nada aqui ati
 
 ### Verificar a RLS
 
-Depois das migrations, rode `supabase/tests/verificar_rls.sql` (licenças) e `supabase/tests/verificar_rls_historias.sql` (histórias) no SQL Editor, trocando os UUIDs por dois usuários de teste. O script roda numa transação desfeita: o usuário B não vê a licença do usuário A, e o `insert` como usuário comum falha com "permission denied".
+Depois das migrations, rode `supabase/tests/verificar_rls.sql` (licenças), `supabase/tests/verificar_rls_historias.sql` (histórias) e `supabase/tests/verificar_acesso_gerador.sql` (o que a geração consulta) no SQL Editor, trocando os UUIDs por dois usuários de teste. O script roda numa transação desfeita: o usuário B não vê a licença do usuário A, e o `insert` como usuário comum falha com "permission denied".
 
 ## 3. Testar o login
 
@@ -72,10 +72,10 @@ Apague essas linhas de teste antes de abrir as vendas.
 
 1. Sem licença: entre e abra `/app`. Você deve cair em `/conta` com o aviso "Sua conta ainda não tem uma licença ativa".
 2. Crie uma licença de teste (SQL acima) e abra `/app` de novo: o painel aparece com seu e-mail no cabeçalho, e o CTA do site vira "Meu painel".
-3. Gere um prompt no estúdio, use "Registrar e gerar o episódio 2", salve a ficha e volte a `/app`: a série aparece em "Minhas histórias".
+3. Antes da licença, "Gerar meu prompt" no estúdio deve mostrar "Sua conta ainda não tem o acesso ativo". Com a licença, gere um prompt, use "Registrar e gerar o episódio 2", salve a ficha e volte a `/app`: a série aparece em "Minhas histórias".
 4. Em "Cópia na sua conta", confirme que os dados são seus e clique em "Salvar deste navegador na conta". Confira as linhas em `story_series` e `prompt_history` (Table Editor).
 5. Abra `/app` em outro navegador com a mesma conta e use "Trazer da conta para este navegador".
-6. Revogue a licença: `/app` passa a mandar para `/conta`; nada é apagado (nem no navegador, nem na conta).
+6. Revogue a licença: `/app` passa a mandar para `/conta` e o estúdio deixa de gerar ("Sua licença não está mais ativa"); nada é apagado (nem no navegador, nem na conta).
 
 ### Como o painel guarda as histórias
 
@@ -114,12 +114,6 @@ Pontos ainda em aberto, a decidir com os dados reais da conta comercial:
 - política para compras com e-mail sem conta;
 - canal de suporte para exclusão de conta (citado na política de privacidade).
 
-## 6. Proteger o gerador premium
+## 6. Gerador premium
 
-Hoje o engine roda no navegador, então esconder páginas **não** protege nada. Para proteger de verdade:
-
-1. Mover a geração para o servidor (Server Action ou Route Handler) que chama `hasPremiumAccess()` antes de gerar.
-2. Tirar o engine do bundle do navegador, mantendo `src/lib/engine` e seus testes intactos.
-3. Só então mudar `PREMIUM_GENERATION_ENFORCED` para `true` e ajustar os textos da conta e dos planos.
-
-Exigir login no `/app` organiza a experiência de quem comprou, mas **não** protege o engine: `/studio` continua público e o gerador continua no bundle.
+Feito: a geração roda só no servidor e exige licença ativa a cada pedido. Arquitetura, testes, acesso local de teste e o roteiro de ativação estão em [`PROTECAO_GERADOR_PREMIUM.md`](PROTECAO_GERADOR_PREMIUM.md).

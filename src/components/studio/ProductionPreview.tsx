@@ -1,14 +1,34 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { TimelineBar } from "@/components/TimelineBar";
-import { DECISION_SECONDS, FORMATS, MODES, STORY_TYPES, STYLES, isEpisodic, isInteractive, planForConfig } from "@/lib/engine";
-import type { StudioConfig } from "@/lib/engine";
+import { DECISION_SECONDS, FORMATS, MODES, STORY_TYPES, STYLES, isEpisodic, isInteractive } from "@/lib/catalog";
+import type { PlanPreview, StudioConfig } from "@/lib/catalog";
+import { previewPlanAction } from "@/lib/generation/actions";
 
-/** Resumo ao vivo do plano que o engine vai aplicar com a configuração atual. */
-export function ProductionPreview({ config, episode }: { config: StudioConfig; episode: number }) {
-  const plan = useMemo(() => planForConfig(config), [config]);
+/**
+ * Resumo ao vivo do plano que o engine vai aplicar com a configuração atual.
+ * A linha do tempo é calculada no servidor (o engine não vem ao navegador),
+ * com uma pequena espera para não pedir a cada tecla.
+ */
+export function ProductionPreview({ config, episode, initialPlan }: { config: StudioConfig; episode: number; initialPlan: PlanPreview }) {
+  const [plan, setPlan] = useState(initialPlan);
+  useEffect(() => {
+    let current = true;
+    const timer = setTimeout(() => {
+      previewPlanAction(config)
+        .then((next) => {
+          if (current && next) setPlan(next);
+        })
+        // Sem rede, a prévia fica com o último plano conhecido; a geração mostra o erro.
+        .catch(() => {});
+    }, 250);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [config]);
   const interactive = isInteractive(config);
   // No celular o painel começa recolhido (fica abaixo do formulário); no desktop, sempre aberto.
   const [open, setOpen] = useState(false);

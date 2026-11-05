@@ -64,7 +64,7 @@ describe("estados de acesso", () => {
     expect(canUsePremium(a)).toBe(false);
   });
 
-  it("o gerador ainda não é protegido, e o código assume isso", () => {
-    expect(PREMIUM_GENERATION_ENFORCED).toBe(false);
+  it("o gerador é protegido no servidor, e o código assume isso", () => {
+    expect(PREMIUM_GENERATION_ENFORCED).toBe(true);
   });
 });

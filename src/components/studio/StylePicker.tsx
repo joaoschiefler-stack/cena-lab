@@ -2,8 +2,8 @@
 
 import { Check } from "lucide-react";
 import { CartoonScene, StickmanScene } from "@/components/illustrations/Scenes";
-import { STYLE_LIST } from "@/lib/engine";
-import type { StyleId } from "@/lib/engine";
+import { STYLE_LIST } from "@/lib/catalog";
+import type { StyleId } from "@/lib/catalog";
 
 const PREVIEWS: Record<StyleId, typeof CartoonScene> = {
   cartoon: CartoonScene,

@@ -3,7 +3,7 @@
 import { createLocalStore, newId } from "@/lib/local-store";
 import { normalizeRecord, recordFromDraft } from "@/lib/series-draft";
 import type { ContinuationDraft, SeriesRecord } from "@/lib/series-draft";
-import type { StudioConfig } from "@/lib/engine";
+import type { StudioConfig } from "@/lib/catalog";
 
 /** Séries salvas localmente neste navegador. */
 const MAX_SERIES = 20;

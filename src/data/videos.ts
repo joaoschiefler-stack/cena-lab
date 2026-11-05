@@ -1,4 +1,4 @@
-import type { OutputMode, StoryFormat, StoryTypeId, StyleId, TextMode, ToneId } from "@/lib/engine";
+import type { OutputMode, StoryFormat, StoryTypeId, StyleId, TextMode, ToneId } from "@/lib/catalog";
 
 /**
  * Galeria de animações REAIS produzidas com prompts do CENA LAB.

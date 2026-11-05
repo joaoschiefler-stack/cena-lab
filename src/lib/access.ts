@@ -36,10 +36,9 @@ export async function getAccess(): Promise<Access> {
 }
 
 /**
- * Ponto único de autorização para o uso premium. Use-o em toda rota ou
- * Server Action que gerar conteúdo pago. Atenção: enquanto o engine rodar
- * no navegador (PREMIUM_GENERATION_ENFORCED = false), isso NÃO protege o
- * gerador por si só.
+ * Licença ativa para o usuário da sessão. A geração usa a regra completa
+ * em src/lib/generation/service.ts (que também trata falhas e o acesso
+ * local de teste); este atalho serve a telas que só precisam do sim/não.
  */
 export async function hasPremiumAccess(): Promise<boolean> {
   return canUsePremium(await getAccess());

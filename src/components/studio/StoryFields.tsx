@@ -10,8 +10,8 @@ import {
   isInteractive,
   parseTimeSpan,
   progressionRelevant,
-} from "@/lib/engine";
-import type { ConfigErrors, StoryFormat, StudioConfig } from "@/lib/engine";
+} from "@/lib/catalog";
+import type { ConfigErrors, StoryFormat, StudioConfig } from "@/lib/catalog";
 import { Chips, FieldLegend, Segmented, TextField, Toggle } from "./controls";
 
 const FORMAT_ICONS: Record<StoryFormat, typeof BookOpen> = {

@@ -52,6 +52,13 @@ describe("migration de perfis e licenças", () => {
     expect(sql).toMatch(/revoke insert, update, delete, truncate on public\.licenses from anon, authenticated/);
   });
 
+  it("TRUNCATE (que ignora a RLS) revogado de todos os papéis de cliente", () => {
+    for (const table of ["profiles", "licenses", "story_series", "prompt_history"])
+      expect(sql, table).toMatch(new RegExp(`revoke [^;]*truncate[^;]* on public\\.${table} from anon, authenticated`));
+    expect(sql).toMatch(/revoke all on public\.licenses from anon/);
+    expect(sql).toMatch(/revoke all on public\.profiles from anon/);
+  });
+
   it("status e motivos de revogação são restritos", () => {
     expect(sql).toMatch(/status in \('active', 'revoked'\)/);
     expect(sql).toMatch(/revoke_reason in \('refund', 'chargeback', 'manual'\)/);

@@ -4,8 +4,8 @@ import { ChevronDown, Sparkles, Wand2 } from "lucide-react";
 import type { RefObject } from "react";
 import { Button } from "@/components/ui/Button";
 import { SAMPLE_IDEAS } from "@/data/ideas";
-import { DEFAULT_CONFIG, DURATIONS, LIMITS, MODES, STORY_TYPES, TONES, TONE_LIST, detectChallengeDays } from "@/lib/engine";
-import type { ConfigErrors, StudioConfig } from "@/lib/engine";
+import { DEFAULT_CONFIG, DURATIONS, LIMITS, MODES, STORY_TYPES, TONES, TONE_LIST, detectChallengeDays } from "@/lib/catalog";
+import type { ConfigErrors, StudioConfig } from "@/lib/catalog";
 import { AdvancedOptions } from "./AdvancedOptions";
 import { FieldLegend, Segmented } from "./controls";
 import { ModePicker } from "./ModePicker";
@@ -20,9 +20,11 @@ interface Props {
   ideaRef: RefObject<HTMLTextAreaElement | null>;
   /** Continuando uma série (muda rótulos e o seletor de formato). */
   continuing?: { episode: number } | null;
+  /** Pedido de geração em andamento no servidor. */
+  busy?: boolean;
 }
 
-export function StudioForm({ config, errors, onChange, onSubmit, ideaRef, continuing = null }: Props) {
+export function StudioForm({ config, errors, onChange, onSubmit, ideaRef, continuing = null, busy = false }: Props) {
   const ideaLength = config.idea.trim().length;
 
   return (
@@ -124,12 +126,12 @@ export function StudioForm({ config, errors, onChange, onSubmit, ideaRef, contin
 
       {/* No celular, a ação fica presa ao rodapé da tela enquanto o formulário está visível. */}
       <div className="sticky bottom-0 z-20 -mx-4 flex flex-col items-stretch gap-3 border-t border-line bg-base/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md sm:static sm:mx-0 sm:flex-row sm:items-center sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
-        <Button type="submit" size="lg" className="sm:min-w-64">
+        <Button type="submit" size="lg" className="sm:min-w-64" disabled={busy} aria-busy={busy || undefined}>
           <Wand2 className="h-4.5 w-4.5" aria-hidden="true" />
-          {continuing ? `Gerar episódio ${continuing.episode}` : "Gerar meu prompt"}
+          {busy ? "Gerando…" : continuing ? `Gerar episódio ${continuing.episode}` : "Gerar meu prompt"}
         </Button>
         <p className="hidden text-xs text-subtle sm:block">
-          Gerado no seu navegador, na hora. <kbd className="rounded border border-line px-1 font-mono">Ctrl</kbd>+
+          Gerado na hora para a sua conta. <kbd className="rounded border border-line px-1 font-mono">Ctrl</kbd>+
           <kbd className="rounded border border-line px-1 font-mono">Enter</kbd> também funciona.
         </p>
       </div>

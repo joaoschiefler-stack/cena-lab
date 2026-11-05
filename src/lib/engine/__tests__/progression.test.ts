@@ -9,7 +9,13 @@ import {
   type SeriesContext,
   type StudioConfig,
 } from "@/lib/engine";
-import { applyParsedSheet, draftFromResult, nextEpisodeConfig } from "@/lib/series-draft";
+import { applyParsedSheet, nextEpisodeConfig } from "@/lib/series-draft";
+import { continuationFacts } from "@/lib/generation/service";
+import { draftFromResult as draftFromResultBase } from "@/lib/series-draft";
+
+// A ficha usa dados que o servidor calcula (continuationFactsAction); aqui, direto do núcleo.
+const fromResult = (config: StudioConfig, title: string, seriesId: string | null) =>
+  draftFromResultBase(config, title, seriesId, continuationFacts(config));
 
 const RICO = "Um homem tem 30 dias para ficar rico e sair com uma supermodelo.";
 const base: StudioConfig = { ...DEFAULT_CONFIG, idea: RICO, storyType: "desafio", format: "serie", duration: 30 };
@@ -110,7 +116,7 @@ describe("4. séries preservam a progressão entre episódios", () => {
     const p1 = generateMasterPrompt(ep1).prompt;
     expect(p1).toContain("DIAS DECORRIDOS: 1");
 
-    const draft = draftFromResult(ep1, "Rico", null);
+    const draft = fromResult(ep1, "Rico", null);
     expect(draft.current.daysElapsed).toBe(1);
     const ep2 = nextEpisodeConfig(ep1, draft);
     expect(ep2.timeProgression).toBe("um_dia");
@@ -122,7 +128,7 @@ describe("4. séries preservam a progressão entre episódios", () => {
 
   it("ficha colada do Claude também alimenta o dia seguinte", () => {
     const ep1: StudioConfig = { ...base, timeProgression: "um_dia" };
-    const draft = applyParsedSheet(draftFromResult(ep1, "Rico", null), { daysElapsed: 4 });
+    const draft = applyParsedSheet(fromResult(ep1, "Rico", null), { daysElapsed: 4 });
     expect(generateMasterPrompt(nextEpisodeConfig(ep1, draft)).prompt).toMatch(/somente o \*\*Dia 5\*\*/);
   });
 
@@ -136,7 +142,7 @@ describe("4. séries preservam a progressão entre episódios", () => {
 
   it("período personalizado não vaza para o episódio seguinte", () => {
     const ep1: StudioConfig = { ...base, timeProgression: "personalizado", timeSpan: "Dias 1 a 5" };
-    const draft = draftFromResult(ep1, "Rico", null);
+    const draft = fromResult(ep1, "Rico", null);
     expect(draft.current.daysElapsed).toBe(5);
     const ep2 = nextEpisodeConfig(ep1, draft);
     expect(ep2.timeProgression).toBe("auto");

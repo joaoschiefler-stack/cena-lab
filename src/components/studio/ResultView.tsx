@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { TimelineBar } from "@/components/TimelineBar";
 import { Button } from "@/components/ui/Button";
 import { copyText, downloadText } from "@/lib/browser";
-import { CAPTION_MODES, FORMATS, MODES, STYLES, TEXT_MODES, TONES, isEpisodic } from "@/lib/engine";
-import type { GeneratedPrompt, OutputMode } from "@/lib/engine";
+import { CAPTION_MODES, FORMATS, MODES, STYLES, TEXT_MODES, TONES, isEpisodic } from "@/lib/catalog";
+import type { GeneratedPrompt, OutputMode } from "@/lib/catalog";
 import { SITE } from "@/lib/site";
 import { ModePicker } from "./ModePicker";
 import { NarrationPanel } from "./NarrationPanel";
@@ -17,9 +17,11 @@ interface Props {
   onRegenerate: () => void;
   onModeChange: (mode: OutputMode) => void;
   onContinue: () => void;
+  /** Nova geração (variação ou modo) em andamento no servidor. */
+  busy?: boolean;
 }
 
-export function ResultView({ result, onEdit, onRegenerate, onModeChange, onContinue }: Props) {
+export function ResultView({ result, onEdit, onRegenerate, onModeChange, onContinue, busy = false }: Props) {
   const { config, plan } = result;
   const [copyState, setCopyState] = useState<"idle" | "ok" | "error">("idle");
   const [expanded, setExpanded] = useState(false);
@@ -191,9 +193,9 @@ export function ResultView({ result, onEdit, onRegenerate, onModeChange, onConti
                 <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
                 {expanded ? "Recolher prompt" : "Ver prompt completo"}
               </Button>
-              <Button variant="ghost" size="sm" onClick={onRegenerate}>
-                <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                Gerar novamente
+              <Button variant="ghost" size="sm" onClick={onRegenerate} disabled={busy} aria-busy={busy || undefined}>
+                <RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} aria-hidden="true" />
+                {busy ? "Gerando…" : "Gerar novamente"}
               </Button>
               <Button variant="ghost" size="sm" onClick={onEdit}>
                 <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -218,7 +220,7 @@ export function ResultView({ result, onEdit, onRegenerate, onModeChange, onConti
                   ? "Depois de produzir o vídeo, cole a Ficha de continuidade que o Claude entregar e gere o próximo episódio."
                   : "Gostou da história? Transforme-a em série: registre o que aconteceu e gere o episódio 2 com os mesmos personagens."}
             </p>
-            <Button variant={isEpisodic(config) ? "primary" : "secondary"} size="sm" className="mt-3 h-auto min-h-10 w-full py-2" onClick={onContinue}>
+            <Button variant={isEpisodic(config) ? "primary" : "secondary"} size="sm" className="mt-3 h-auto min-h-10 w-full py-2" onClick={onContinue} disabled={busy}>
               Registrar e gerar o episódio {result.episodeNumber + 1}
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             </Button>

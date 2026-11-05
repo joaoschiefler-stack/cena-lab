@@ -41,11 +41,11 @@ export function PurchaseCta({ sales, className = "", tone = "light" }: { sales: 
         Em breve
       </p>
       <p className={`mt-3 text-center text-sm leading-relaxed ${dark ? "text-white/70" : "text-muted"}`}>
-        As vendas ainda não abriram. Enquanto isso, o{" "}
+        As vendas ainda não abriram. Enquanto isso, você pode conhecer o{" "}
         <Link href="/studio" className={`font-semibold underline-offset-4 hover:underline ${dark ? "text-pink" : "text-brand"}`}>
           estúdio
         </Link>{" "}
-        está aberto para teste.
+        e todas as opções dele.
       </p>
     </div>
   );

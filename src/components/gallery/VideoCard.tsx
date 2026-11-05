@@ -4,7 +4,7 @@ import { ArrowRight, Info, X } from "lucide-react";
 import { useRef } from "react";
 import { ButtonLink, Button } from "@/components/ui/Button";
 import type { GalleryVideo } from "@/data/videos";
-import { FORMATS, MODES, STORY_TYPES, STYLES, TEXT_MODES, TONES } from "@/lib/engine";
+import { FORMATS, MODES, STORY_TYPES, STYLES, TEXT_MODES, TONES } from "@/lib/catalog";
 import { VideoPlayer } from "./VideoPlayer";
 
 function duration(s: number) {

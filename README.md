@@ -77,7 +77,7 @@ Microinterações: `.card-hover` e `.anim-fade-up`. Todas respeitam `prefers-red
 
 Ordem das seções em `src/app/page.tsx`: hero (vídeo em destaque ou ilustração) → **Conheça o estúdio** (`#estudio`) → **Formatos** (`#formatos`) → **Como funciona** (`#como-funciona`) → Resultados reais (só com vídeos) → **Acesso fundador** (`#oferta`) → FAQ (`#duvidas`) → CTA final.
 
-- A demonstração do estúdio (`components/landing/StudioDemo.tsx`) mostra números calculados no build pelo motor real (`lib/landing-demo.ts`); o motor não vai para o bundle da homepage.
+- A demonstração do estúdio (`components/landing/StudioDemo.tsx`) mostra números calculados no build pelo motor real (`lib/landing-demo.ts`); o motor não vai para o bundle da homepage, e a linha do tempo vai sem a função narrativa dos trechos.
 - A oferta (`components/landing/OfferSection.tsx`) usa `src/data/plans.ts`, a mesma fonte de `/planos`, e o mesmo modo comercial do servidor (`CENA_SALES_MODE`).
 - Links para o estúdio já configurado: `/studio?formato=completa|interativo|serie&estilo=cartoon|stickman&duracao=15|30|45|60&ideia=...` (`lib/studio-link.ts`). Valores desconhecidos são ignorados.
 
@@ -86,7 +86,7 @@ Ordem das seções em `src/app/page.tsx`: hero (vídeo em destaque ou ilustraç�
 Área de quem comprou: banner, escolha de estilo, "Minhas histórias" (séries e prompts anteriores) e cópia das histórias na conta. Código em `src/app/app/` e `src/components/dashboard/`; regras de acesso em `src/lib/dashboard-access.ts` (decididas no servidor). O site público fica em `src/app/(site)/`, com cabeçalho próprio.
 
 - O painel reaproveita os dados do estúdio (`localStorage`) e o fluxo de continuação existente: os cards abrem `/studio?serie=<id>`, `/studio?continuar=<id>` (transformar um prompt em série) ou `/studio?historico=<id>` (reabrir sem duplicar).
-- Sem Supabase, o painel abre em "modo local". Com Supabase: sem login → login; sem licença → conta; licença ativa → painel. Configuração e testes em `docs/contas-e-planos.md`.
+- Sem Supabase, o painel só abre em "modo local de teste" no `npm run dev` com `CENA_DEV_PREMIUM_ACCESS=local`; em produção mostra que as contas estão em configuração. Com Supabase: sem login → login; sem licença → conta; licença ativa → painel. Configuração e testes em `docs/contas-e-planos.md`.
 
 ## Galeria de animações reais
 
@@ -114,13 +114,13 @@ npm run dev          # http://localhost:3000
 | Script | O que faz |
 |---|---|
 | `npm run dev` | servidor de desenvolvimento |
-| `npm run build` | build de produção (todas as rotas são estáticas) |
+| `npm run build` | build de produção |
 | `npm start` | serve o build de produção |
 | `npm test` | testes do engine (Vitest) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 
-Não precisa de variáveis de ambiente para rodar. Em produção, defina `NEXT_PUBLIC_SITE_URL` (ex.: `https://cenalab.com.br`; veja `.env.example`) para gerar URLs corretas no sitemap, no robots, nas metatags e na imagem de compartilhamento. Na Vercel, sem a variável, o domínio de produção do projeto é usado. Sem nenhuma das duas, o sitemap fica vazio, o robots não anuncia sitemap e o build avisa no terminal: nada aponta para localhost.
+Não precisa de variáveis de ambiente para abrir o site. Para **gerar prompts** sem Supabase durante o desenvolvimento, crie `.env.local` com `CENA_DEV_PREMIUM_ACCESS=local` e use `npm run dev` (num build de produção sem Supabase, a geração fica bloqueada). Em produção, defina `NEXT_PUBLIC_SITE_URL` (ex.: `https://cenalab.com.br`; veja `.env.example`) para gerar URLs corretas no sitemap, no robots, nas metatags e na imagem de compartilhamento. Na Vercel, sem a variável, o domínio de produção do projeto é usado. Sem nenhuma das duas, o sitemap fica vazio, o robots não anuncia sitemap e o build avisa no terminal: nada aponta para localhost.
 
 ## Stack
 
@@ -140,7 +140,9 @@ src/
     TimelineBar.tsx       visualização do plano de tempo
   data/                   ideias de exemplo, FAQ, vídeos da galeria (videos.ts)
   lib/
-    engine/               ENGINE DE PROMPTS (TypeScript puro, sem React)
+    engine/               ENGINE DE PROMPTS (TypeScript puro, só no servidor)
+    catalog/              parte pública do engine: opções, limites, validação (usada no navegador)
+    generation/           geração no servidor: Server Actions, licença, validação estrita
     history.ts            histórico em localStorage (useSyncExternalStore)
     browser.ts            copiar e baixar .txt
     site.ts               nome, URLs, navegação
@@ -148,7 +150,7 @@ src/
 
 ## Como funciona o engine
 
-`src/lib/engine/` é um módulo independente e determinístico: a mesma configuração sempre gera o mesmo prompt. Ele roda no navegador e também no servidor (a landing usa a saída real dele no build).
+`src/lib/engine/` é um módulo independente e determinístico: a mesma configuração sempre gera o mesmo prompt. Ele roda **só no servidor** (`server-only`): o estúdio pede a geração pela Server Action `generatePromptAction`, que confere sessão e licença. O navegador usa apenas `src/lib/catalog/` (nomes das opções, limites, validação e leitura de blocos colados). Veja [`docs/PROTECAO_GERADOR_PREMIUM.md`](docs/PROTECAO_GERADOR_PREMIUM.md).
 
 ```
 generateMasterPrompt(config)
@@ -198,10 +200,11 @@ Os parâmetros mudam o conteúdo do prompt, não só os rótulos. Alguns exemplo
 
 1. Adicione o id ao tipo `StyleId` em `src/lib/engine/types.ts`.
 2. Crie o preset em `src/lib/engine/presets/styles.ts` seguindo `StylePreset` e registre em `STYLES`.
-3. Crie uma ilustração em `components/illustrations/Scenes.tsx` e mapeie-a em `components/studio/StylePicker.tsx` (`PREVIEWS`).
-4. Rode `npm test`. A suíte percorre todos os estilos registrados e acusa prompts idênticos.
+3. Adicione nome, descrição e tópicos do estilo em `src/lib/catalog/options.ts` (o que o navegador mostra). Um teste confere que catálogo e presets têm as mesmas chaves e os mesmos textos.
+4. Crie uma ilustração em `components/illustrations/Scenes.tsx` e mapeie-a em `components/studio/StylePicker.tsx` (`PREVIEWS`).
+5. Rode `npm test`. A suíte percorre todos os estilos registrados e acusa prompts idênticos.
 
-Tons, finais e ritmos seguem o mesmo padrão (`tones.ts`, `options.ts`).
+Tons, finais e ritmos seguem o mesmo padrão (`tones.ts`, `options.ts` do engine, mais `catalog/options.ts`).
 
 ## Como atualizar templates
 
@@ -225,7 +228,7 @@ O engine é puro e não depende de rede. Para adicionar um refinamento por LLM d
 - `/login`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha` e `/conta` usam Supabase Auth (`@supabase/ssr`). As Server Actions ficam em `src/lib/auth/`, os clientes em `src/lib/supabase/` e o proxy que renova a sessão em `src/proxy.ts`.
 - O acesso (sem login, sem plano, licença ativa, licença revogada) é verificado no servidor em `src/lib/access.ts`. As tabelas e a RLS estão em `supabase/migrations/`.
 - Sem as variáveis do Supabase, as páginas mostram "Contas em configuração" e não enviam nada.
-- **O gerador ainda não é protegido**: o engine roda no navegador. Veja como proteger em [`docs/contas-e-planos.md`](docs/contas-e-planos.md), que também traz o passo a passo de configuração, os testes de login e o que falta para a Kiwify.
+- **O gerador é protegido no servidor**: só gera com licença ativa; sem Supabase, só em `npm run dev` com `CENA_DEV_PREMIUM_ACCESS=local`. Veja [`docs/PROTECAO_GERADOR_PREMIUM.md`](docs/PROTECAO_GERADOR_PREMIUM.md) e [`docs/contas-e-planos.md`](docs/contas-e-planos.md) (configuração, testes de login e o que falta para a Kiwify).
 
 ## Como publicar
 
@@ -242,9 +245,9 @@ O build é quase todo estático (`/conta` e `/auth/confirm` rodam no servidor) e
 - **Validação com o Claude**: os testes verificam o texto dos prompts, não a qualidade dos vídeos. Ainda não foi feito um experimento comparando animações geradas com e sem o CENA LAB.
 - **Outros estilos** (motion graphics, low-poly 3D), **outros formatos** (1:1, 16:9) e **outros idiomas de narração**.
 - **Refinamento por LLM** e **sincronização de histórico entre dispositivos**: não existem. O histórico é só local.
-- **Pagamentos**: a Kiwify não está integrada (sem checkout nem webhook). As contas dependem de configurar o Supabase, e o gerador premium ainda não é protegido.
+- **Pagamentos**: a Kiwify não está integrada (sem checkout nem webhook). As contas dependem de configurar o Supabase; até lá, a geração premium fica bloqueada em produção.
 - **Correção de cena isolada**: cada cena tem um ID fixo (`CENA_01`…) e vira um componente próprio no código, o que permite pedir ao Claude "ajuste só a CENA_03". O CENA LAB ainda não gera esse prompt de correção automaticamente.
 - **Roteiro de narração depende do Claude**: o CENA LAB não escreve as falas; ele organiza o bloco que o Claude entregar. Os tempos são estimativas e o áudio gerado pode precisar de ajuste na edição. O ElevenLabs é um serviço externo, com planos e termos próprios.
 - **Finais interativos e séries não foram testados no Claude**: os testes verificam o texto dos prompts e o fluxo da interface, não a qualidade dos vídeos produzidos.
 - A leitura da ideia é heurística, baseada em dicionário de palavras em português. Ideias que fogem desses padrões recebem só a direção genérica de expansão.
-- Testes automatizados cobrem o engine. O fluxo de interface foi verificado com um script E2E local que não faz parte do repositório.
+- Testes automatizados cobrem o engine, a equivalência do prompt antes/depois da migração para o servidor e as regras de acesso (com Supabase simulado). O fluxo de interface foi verificado com um script E2E local que não faz parte do repositório.

@@ -1,7 +1,7 @@
 "use client";
 
 import { History, Trash2, X } from "lucide-react";
-import { MODES, STYLES } from "@/lib/engine";
+import { MODES, STYLES } from "@/lib/catalog";
 import { clearHistory, removeHistoryEntry, useHistory } from "@/lib/history";
 import type { HistoryEntry } from "@/lib/history";
 

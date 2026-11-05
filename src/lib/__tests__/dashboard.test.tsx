@@ -61,8 +61,16 @@ describe("acesso ao painel /app (decidido no servidor)", () => {
   it("licença ativa abre o painel com o e-mail da conta", () => {
     expect(dashboardGate(access("active"))).toEqual({ kind: "render", mode: "account", email: "ana@exemplo.com" });
   });
-  it("Supabase não configurado: modo local, sem conta", () => {
-    expect(dashboardGate(access("unconfigured"))).toEqual({ kind: "render", mode: "local", email: null });
+  it("Supabase não configurado: modo local só com o acesso local de teste (next dev)", () => {
+    expect(dashboardGate(access("unconfigured"), true)).toEqual({ kind: "render", mode: "local", email: null });
+  });
+  it("Supabase não configurado em produção: painel indisponível, nada liberado", () => {
+    expect(dashboardGate(access("unconfigured"))).toEqual({ kind: "unavailable" });
+    expect(dashboardGate(access("unconfigured"), false)).toEqual({ kind: "unavailable" });
+  });
+  it("o acesso local de teste não muda nada quando há conta configurada", () => {
+    for (const s of ["anonymous", "no_license", "revoked", "error"] as const)
+      expect(dashboardGate(access(s), true)).toEqual(dashboardGate(access(s), false));
   });
   it("falha ao verificar não libera acesso", () => {
     expect(dashboardGate(access("error"))).toEqual({ kind: "error" });

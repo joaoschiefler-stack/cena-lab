@@ -1,3 +1,6 @@
+import "server-only";
+
+// Motor de geração: só no servidor. Componentes do navegador usam @/lib/catalog.
 export {
   generateMasterPrompt,
   buildContext,

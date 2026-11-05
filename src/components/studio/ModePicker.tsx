@@ -1,8 +1,8 @@
 "use client";
 
 import { Code2, MonitorPlay } from "lucide-react";
-import { MODES } from "@/lib/engine";
-import type { OutputMode } from "@/lib/engine";
+import { MODES } from "@/lib/catalog";
+import type { OutputMode } from "@/lib/catalog";
 
 const ICONS: Record<OutputMode, typeof Code2> = {
   artifacts: MonitorPlay,
