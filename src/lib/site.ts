@@ -28,6 +28,7 @@ export const NAV_LINKS = [
   { href: "/studio", label: "Estúdio" },
   { href: "/exemplos", label: "Animações" },
   { href: "/como-funciona", label: "Como funciona" },
+  { href: "/planos", label: "Planos" },
 ] as const;
 
 /** Links de navegação; a galeria só entra quando há vídeo publicado (sem CTA para página vazia). */

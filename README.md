@@ -204,12 +204,20 @@ O engine é puro e não depende de rede. Para adicionar um refinamento por LLM d
 2. Mantenha o prompt determinístico como resultado padrão e use o LLM apenas como etapa opcional.
 3. Nunca exponha chaves de API no frontend.
 
+## Planos, contas e licenças
+
+- `/planos` apresenta o **CENA LAB Fundador** (R$47, pagamento único). O CTA mostra "Em breve" até o servidor ter `CENA_SALES_MODE=SALES_ENABLED` **e** uma `CENA_CHECKOUT_URL` https real. Os dados da oferta ficam em `src/data/plans.ts`.
+- `/login`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha` e `/conta` usam Supabase Auth (`@supabase/ssr`). As Server Actions ficam em `src/lib/auth/`, os clientes em `src/lib/supabase/` e o proxy que renova a sessão em `src/proxy.ts`.
+- O acesso (sem login, sem plano, licença ativa, licença revogada) é verificado no servidor em `src/lib/access.ts`. As tabelas e a RLS estão em `supabase/migrations/`.
+- Sem as variáveis do Supabase, as páginas mostram "Contas em configuração" e não enviam nada.
+- **O gerador ainda não é protegido**: o engine roda no navegador. Veja como proteger em [`docs/contas-e-planos.md`](docs/contas-e-planos.md), que também traz o passo a passo de configuração, os testes de login e o que falta para a Kiwify.
+
 ## Como publicar
 
-O build é 100% estático e funciona em qualquer host com suporte a Next.js (Vercel, Netlify, Cloudflare, Node próprio com `npm run build && npm start`).
+O build é quase todo estático (`/conta` e `/auth/confirm` rodam no servidor) e funciona em qualquer host com suporte a Next.js (Vercel, Netlify, Cloudflare, Node próprio com `npm run build && npm start`).
 
 1. Suba o repositório para o GitHub.
-2. Importe-o no provedor de hospedagem e defina `NEXT_PUBLIC_SITE_URL`.
+2. Importe-o no provedor de hospedagem e defina as variáveis de `.env.example` (`NEXT_PUBLIC_SITE_URL`, Supabase e modo comercial).
 3. Configure o domínio.
 4. Revise `/privacidade`: a página menciona logs do provedor de hospedagem de forma genérica. Se você adicionar analytics, cookies ou contas, atualize a política **antes**.
 
@@ -218,7 +226,8 @@ O build é 100% estático e funciona em qualquer host com suporte a Next.js (Ver
 - **Vídeos reais**: a galeria ainda não tem vídeos publicados e mostra uma chamada compacta. Veja `public/videos/README.md`.
 - **Validação com o Claude**: os testes verificam o texto dos prompts, não a qualidade dos vídeos. Ainda não foi feito um experimento comparando animações geradas com e sem o CENA LAB.
 - **Outros estilos** (motion graphics, low-poly 3D), **outros formatos** (1:1, 16:9) e **outros idiomas de narração**.
-- **Refinamento por LLM**, **contas**, **sincronização de histórico entre dispositivos** e **monetização**: nada disso existe. O histórico é só local.
+- **Refinamento por LLM** e **sincronização de histórico entre dispositivos**: não existem. O histórico é só local.
+- **Pagamentos**: a Kiwify não está integrada (sem checkout nem webhook). As contas dependem de configurar o Supabase, e o gerador premium ainda não é protegido.
 - **Correção de cena isolada**: cada cena tem um ID fixo (`CENA_01`…) e vira um componente próprio no código, o que permite pedir ao Claude "ajuste só a CENA_03". O CENA LAB ainda não gera esse prompt de correção automaticamente.
 - **Roteiro de narração depende do Claude**: o CENA LAB não escreve as falas; ele organiza o bloco que o Claude entregar. Os tempos são estimativas e o áudio gerado pode precisar de ajuste na edição. O ElevenLabs é um serviço externo, com planos e termos próprios.
 - **Finais interativos e séries não foram testados no Claude**: os testes verificam o texto dos prompts e o fluxo da interface, não a qualidade dos vídeos produzidos.

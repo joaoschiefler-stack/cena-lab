@@ -37,6 +37,12 @@ export function SiteHeader({ hasVideos }: { hasVideos: boolean }) {
         </nav>
 
         <div className="flex items-center gap-1">
+          <Link
+            href="/login"
+            className="hidden rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-fg md:inline-flex"
+          >
+            Entrar
+          </Link>
           {/* CTA sempre visível, inclusive no celular (visitantes chegam pelas redes) */}
           {pathname !== "/studio" && (
             <ButtonLink href="/studio" size="sm" className="px-3.5 sm:px-4">
@@ -70,6 +76,13 @@ export function SiteHeader({ hasVideos }: { hasVideos: boolean }) {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/login"
+            onClick={() => setOpen(false)}
+            className="mt-2 block rounded-2xl border border-line px-4 py-3.5 text-base font-medium text-fg hover:bg-brand-soft"
+          >
+            Entrar
+          </Link>
         </nav>
       )}
     </header>

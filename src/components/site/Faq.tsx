@@ -1,10 +1,11 @@
 import { Plus } from "lucide-react";
 import { FAQ } from "@/data/faq";
 
-export function Faq() {
+/** Lista de perguntas em acordeão; usa a FAQ geral quando nenhuma lista é passada. */
+export function Faq({ items = FAQ }: { items?: readonly { q: string; a: string }[] }) {
   return (
     <div className="divide-y divide-line rounded-2xl border border-line bg-surface">
-      {FAQ.map((item) => (
+      {items.map((item) => (
         <details key={item.q} className="group px-5">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-left font-medium text-fg [&::-webkit-details-marker]:hidden">
             {item.q}

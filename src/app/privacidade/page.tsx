@@ -9,7 +9,8 @@ const SECTIONS = [
   {
     title: "Resumo",
     body: [
-      "Nesta versão, o CENA LAB não tem contas, não tem banco de dados e não envia suas ideias ou prompts para nenhum servidor nosso nem para serviços de terceiros.",
+      "O estúdio funciona sem conta: suas ideias e prompts são montados no seu navegador e não são enviados para nenhum servidor nosso nem para serviços de terceiros.",
+      "Se você criar uma conta, guardamos o mínimo necessário para o login e para o seu acesso ao plano, como descrito em “Contas”.",
     ],
   },
   {
@@ -36,9 +37,19 @@ const SECTIONS = [
     ],
   },
   {
+    title: "Contas",
+    body: [
+      "Criar conta é opcional. As contas usam o Supabase (serviço de autenticação e banco de dados), que armazena seu e-mail e sua senha em formato protegido (hash) — nós não temos acesso à sua senha.",
+      "Também guardamos um perfil básico (seu e-mail e a data de criação) e, quando houver, suas licenças: plano, status (ativa ou revogada), datas e, no futuro, os identificadores da compra informados pela plataforma de pagamento.",
+      "Cada usuário só consegue consultar os próprios dados. Ideias, prompts, histórico, séries e roteiros de narração continuam apenas no seu navegador e não vão para a conta.",
+      "Para excluir sua conta e seus dados, entre em contato pelo canal de suporte que será publicado junto com a abertura das vendas.",
+    ],
+  },
+  {
     title: "Cookies, analytics e anúncios",
     body: [
-      "O CENA LAB não usa cookies próprios, ferramentas de analytics, pixels de rastreamento nem anúncios nesta versão.",
+      "Quando você entra na conta, o site usa cookies essenciais de sessão para manter você conectado. Sem login, nenhum cookie próprio é criado.",
+      "O CENA LAB não usa ferramentas de analytics, pixels de rastreamento nem anúncios nesta versão.",
     ],
   },
   {
@@ -56,7 +67,7 @@ const SECTIONS = [
   {
     title: "Mudanças",
     body: [
-      "Se recursos como contas, pagamentos ou integração com APIs forem adicionados no futuro, esta política será atualizada antes, descrevendo os novos tratamentos de dados.",
+      "As vendas ainda não abriram. Antes de ativar pagamentos ou integrações com outros serviços, esta política será atualizada, descrevendo os novos tratamentos de dados.",
     ],
   },
 ];
@@ -66,7 +77,7 @@ export default function PrivacyPage() {
     <div className="mx-auto max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
       <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-brand">Privacidade</p>
       <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl">Política de privacidade</h1>
-      <p className="mt-4 text-sm text-muted">Válida para a versão atual do CENA LAB: demonstração gratuita, sem contas e sem pagamentos.</p>
+      <p className="mt-4 text-sm text-muted">Válida para a versão atual do CENA LAB: estúdio aberto para teste, contas opcionais e vendas ainda não abertas.</p>
       <div className="mt-10 space-y-10">
         {SECTIONS.map((s) => (
           <section key={s.title}>
