@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Experimento isolado: pacote próprio (node_modules, renders locais).
+    "experiments/*/node_modules/**",
+    "experiments/*/output/**",
+    "experiments/*/out/**",
   ]),
 ]);
 

@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "experiments/viral-engine/tests/**/*.test.ts"],
     environment: "node",
   },
 });
