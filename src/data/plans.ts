@@ -21,6 +21,15 @@ export const FOUNDER_PLAN = {
   formats: ["Claude Artifacts", "Claude Code + Remotion", "Vídeo vertical 9:16"],
 } as const;
 
+/** Ficha técnica do plano (card de /planos e seção de oferta da homepage). */
+export const PLAN_SPECS: readonly (readonly [string, string])[] = [
+  ["Formatos", "História completa · Interativa A/B · Série"],
+  ["Estilos", "Cartoon 2D · Stickman Stories"],
+  ["Saída", "Claude Artifacts · Claude Code + Remotion"],
+  ["Vídeo", "Vertical 9:16 · 15 a 60 segundos"],
+  ["Acesso", FOUNDER_PLAN.billing],
+];
+
 export const FEATURE_GROUPS = [
   {
     title: "Criação de histórias",
@@ -71,7 +80,7 @@ export const PLAN_FAQ = [
   },
   {
     q: "É pagamento único?",
-    a: "Sim. O CENA LAB Fundador custa R$47 em pagamento único, sem mensalidade. O acesso vale para as funcionalidades da versão adquirida, conforme as condições comerciais que serão publicadas na abertura das vendas.",
+    a: `Sim. O CENA LAB Fundador custa ${FOUNDER_PLAN.priceLabel} em pagamento único, sem mensalidade. O acesso vale para as funcionalidades da versão adquirida, conforme as condições comerciais que serão publicadas na abertura das vendas.`,
   },
   {
     q: "Posso produzir várias histórias?",

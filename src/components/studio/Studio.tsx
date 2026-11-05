@@ -7,6 +7,7 @@ import type { ConfigErrors, OutputMode, StudioConfig } from "@/lib/engine";
 import { addHistoryEntry } from "@/lib/history";
 import type { HistoryEntry } from "@/lib/history";
 import { saveSeries } from "@/lib/series";
+import { parseStudioPreset } from "@/lib/studio-link";
 import { draftFromRecord, draftFromResult, nextEpisodeConfig, seriesContextFromDraft } from "@/lib/series-draft";
 import type { ContinuationDraft, SeriesRecord } from "@/lib/series-draft";
 import { ContinuationPanel } from "./ContinuationPanel";
@@ -26,13 +27,13 @@ export function Studio({ header }: { header?: ReactNode }) {
   const [seriesId, setSeriesId] = useState<string | null>(null);
   const ideaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Ao montar: adota o que já foi digitado antes da hidratação (rede lenta) ou,
-  // se nada foi digitado, o ?ideia= dos links da página de exemplos.
+  // Ao montar: aplica formato/estilo/duração dos links da homepage e adota o que já
+  // foi digitado antes da hidratação (rede lenta) ou, se nada foi digitado, o ?ideia=.
   useEffect(() => {
+    const { idea: fromUrl = "", ...preset } = parseStudioPreset(window.location.search);
     const typed = ideaRef.current?.value.trim() ? ideaRef.current.value : "";
-    const fromUrl = new URLSearchParams(window.location.search).get("ideia") ?? "";
     const idea = (typed || fromUrl).slice(0, LIMITS.ideaMax);
-    if (idea) setConfig((c) => (c.idea.trim() ? c : { ...c, idea }));
+    setConfig((c) => ({ ...c, ...preset, idea: c.idea.trim() ? c.idea : idea }));
   }, []);
 
   // O prompt é derivado da configuração: trocar o modo ou a variação o atualiza na hora.

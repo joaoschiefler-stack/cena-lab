@@ -17,18 +17,26 @@ export const SITE = {
   name: "CENA LAB",
   tagline: "Crie suas próprias historinhas animadas com Claude.",
   description:
-    "Escreva uma ideia, escolha o estilo e o formato, e o CENA LAB monta as instruções de produção para o Claude criar a sua animação 2D. Grátis e sem cadastro.",
+    "Escreva uma ideia, escolha o estilo e o formato, e o CENA LAB monta as instruções de produção para o Claude criar a sua animação 2D.",
   publicUrl: publicUrl(),
   /** Base para URLs absolutas; cai em localhost só quando não há URL pública (desenvolvimento). */
   url: publicUrl() ?? "http://localhost:3000",
   claudeUrl: "https://claude.ai/new",
 } as const;
 
+/** Navegação principal: seções da homepage (âncoras) e páginas. O estúdio fica no CTA do cabeçalho. */
 export const NAV_LINKS = [
-  { href: "/studio", label: "Estúdio" },
+  { href: "/#como-funciona", label: "Como funciona" },
+  { href: "/#formatos", label: "Formatos" },
   { href: "/exemplos", label: "Animações" },
-  { href: "/como-funciona", label: "Como funciona" },
   { href: "/planos", label: "Planos" },
+] as const;
+
+/** Links extras do rodapé (páginas que saíram do menu principal). */
+export const FOOTER_LINKS = [
+  { href: "/studio", label: "Estúdio" },
+  { href: "/como-funciona", label: "Passo a passo" },
+  { href: "/privacidade", label: "Privacidade" },
 ] as const;
 
 /** Links de navegação; a galeria só entra quando há vídeo publicado (sem CTA para página vazia). */

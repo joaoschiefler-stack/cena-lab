@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "accent";
 type Size = "sm" | "md" | "lg";
 
 const base =
@@ -12,6 +12,8 @@ const variants: Record<Variant, string> = {
     "bg-brand text-white shadow-[0_1px_2px_rgb(25_36_71/0.08),0_8px_20px_-10px_rgb(49_88_220/0.6)] hover:bg-brand-strong hover:shadow-[0_2px_4px_rgb(25_36_71/0.08),0_14px_28px_-12px_rgb(49_88_220/0.65)]",
   secondary: "border border-line-strong bg-surface text-fg hover:border-brand/40 hover:bg-brand-soft",
   ghost: "text-muted hover:bg-brand-soft hover:text-fg",
+  /** Rosa sobre fundos escuros (seção comercial). */
+  accent: "bg-pink text-fg shadow-[0_8px_24px_-10px_rgb(245_167_202/0.7)] hover:bg-[#f7b9d5]",
 };
 
 const sizes: Record<Size, string> = {

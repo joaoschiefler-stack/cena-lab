@@ -73,6 +73,14 @@ O símbolo são três quadros 9:16 em leque (uma sequência de cenas, como um fl
 
 Microinterações: `.card-hover` e `.anim-fade-up`. Todas respeitam `prefers-reduced-motion`.
 
+## Homepage (landing comercial)
+
+Ordem das seções em `src/app/page.tsx`: hero (vídeo em destaque ou ilustração) → **Conheça o estúdio** (`#estudio`) → **Formatos** (`#formatos`) → **Como funciona** (`#como-funciona`) → Resultados reais (só com vídeos) → **Acesso fundador** (`#oferta`) → FAQ (`#duvidas`) → CTA final.
+
+- A demonstração do estúdio (`components/landing/StudioDemo.tsx`) mostra números calculados no build pelo motor real (`lib/landing-demo.ts`); o motor não vai para o bundle da homepage.
+- A oferta (`components/landing/OfferSection.tsx`) usa `src/data/plans.ts`, a mesma fonte de `/planos`, e o mesmo modo comercial do servidor (`CENA_SALES_MODE`).
+- Links para o estúdio já configurado: `/studio?formato=completa|interativo|serie&estilo=cartoon|stickman&duracao=15|30|45|60&ideia=...` (`lib/studio-link.ts`). Valores desconhecidos são ignorados.
+
 ## Galeria de animações reais
 
 Os dados ficam em `src/data/videos.ts`, uma fonte única para o destaque da homepage e para `/exemplos`. Um vídeo só aparece quando três condições valem ao mesmo tempo:
@@ -85,7 +93,7 @@ Assim, nunca há link quebrado nem vídeo inventado. O passo a passo para public
 
 O primeiro case, "30 dias para salvar o casamento — Episódio 1", já está cadastrado como `published: false`.
 
-Sem vídeo publicado, o site esconde tudo que levaria a uma galeria vazia: o link "Animações" do menu, o botão "Ver animações" e a seção "Feitas com o CENA LAB" da homepage. O hero mostra a ilustração (marcada como ilustração). Com o vídeo `featured` publicado, ele entra no hero com autoplay silencioso, em loop, com botões de som e pausa. Só é baixado quando aparece na tela e não toca sozinho com "reduzir movimento" (`components/gallery/HeroVideo.tsx`).
+Sem vídeo publicado, o site esconde tudo que levaria a uma galeria vazia: o link "Animações" do menu, e a seção "Resultados reais" ("Feitas com o CENA LAB") da homepage; nos cards de formato, o espaço de exemplo mostra uma ilustração marcada como tal até existir um vídeo publicado do mesmo estilo/formato. O hero mostra a ilustração (marcada como ilustração). Com o vídeo `featured` publicado, ele entra no hero com autoplay silencioso, em loop, com botões de som e pausa. Só é baixado quando aparece na tela e não toca sozinho com "reduzir movimento" (`components/gallery/HeroVideo.tsx`).
 
 ## Como instalar e rodar
 

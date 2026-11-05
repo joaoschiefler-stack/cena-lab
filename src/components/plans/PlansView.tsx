@@ -3,18 +3,27 @@ import Link from "next/link";
 import { Faq } from "@/components/site/Faq";
 import { ButtonLink, buttonClass } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/Logo";
-import { FEATURE_GROUPS, FOUNDER_PLAN, NOT_INCLUDED, PLAN_FAQ, PLAN_STEPS } from "@/data/plans";
+import { FEATURE_GROUPS, FOUNDER_PLAN, NOT_INCLUDED, PLAN_FAQ, PLAN_SPECS, PLAN_STEPS } from "@/data/plans";
 import type { SalesConfig } from "@/lib/sales-config";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-brand">{children}</p>;
 }
 
-/** CTA de compra: "Em breve" no pré-lançamento; link real só com vendas abertas no servidor. */
-export function PurchaseCta({ sales, className = "" }: { sales: SalesConfig; className?: string }) {
+/**
+ * CTA de compra: "Em breve" no pré-lançamento; link real só com vendas abertas no servidor.
+ * `tone="dark"` é a versão para a seção escura da homepage (mesma lógica).
+ */
+export function PurchaseCta({ sales, className = "", tone = "light" }: { sales: SalesConfig; className?: string; tone?: "light" | "dark" }) {
+  const dark = tone === "dark";
   if (sales.canSell && sales.checkoutUrl) {
     return (
-      <a href={sales.checkoutUrl} rel="noopener" className={buttonClass("primary", "lg", `w-full ${className}`)} data-cta="checkout">
+      <a
+        href={sales.checkoutUrl}
+        rel="noopener"
+        className={buttonClass(dark ? "accent" : "primary", "lg", `w-full ${className}`)}
+        data-cta="checkout"
+      >
         Comprar acesso fundador
         <ExternalLink className="h-4 w-4" aria-hidden="true" />
       </a>
@@ -24,14 +33,16 @@ export function PurchaseCta({ sales, className = "" }: { sales: SalesConfig; cla
     <div className={className} data-cta="prelaunch">
       <p
         role="status"
-        className="flex h-13 w-full items-center justify-center gap-2 rounded-full border border-dashed border-brand/50 bg-brand-soft px-7 font-semibold text-brand"
+        className={`flex h-13 w-full items-center justify-center gap-2 rounded-full border border-dashed px-7 font-semibold ${
+          dark ? "border-white/35 bg-white/5 text-white" : "border-brand/50 bg-brand-soft text-brand"
+        }`}
       >
         <Clock className="h-4 w-4" aria-hidden="true" />
         Em breve
       </p>
-      <p className="mt-3 text-center text-sm leading-relaxed text-muted">
+      <p className={`mt-3 text-center text-sm leading-relaxed ${dark ? "text-white/70" : "text-muted"}`}>
         As vendas ainda não abriram. Enquanto isso, o{" "}
-        <Link href="/studio" className="font-semibold text-brand underline-offset-4 hover:underline">
+        <Link href="/studio" className={`font-semibold underline-offset-4 hover:underline ${dark ? "text-pink" : "text-brand"}`}>
           estúdio
         </Link>{" "}
         está aberto para teste.
@@ -42,13 +53,6 @@ export function PurchaseCta({ sales, className = "" }: { sales: SalesConfig; cla
 
 export function PlansView({ sales }: { sales: SalesConfig }) {
   const p = FOUNDER_PLAN;
-  const specs: [string, string][] = [
-    ["Formatos", "História completa · Interativa A/B · Série"],
-    ["Estilos", "Cartoon 2D · Stickman Stories"],
-    ["Saída", "Claude Artifacts · Claude Code + Remotion"],
-    ["Vídeo", "Vertical 9:16 · 15 a 60 segundos"],
-    ["Acesso", p.billing],
-  ];
 
   return (
     <div className="pb-24">
@@ -87,7 +91,7 @@ export function PlansView({ sales }: { sales: SalesConfig }) {
               ))}
             </ul>
             <dl className="mt-6 divide-y divide-line rounded-2xl border border-line">
-              {specs.map(([k, v]) => (
+              {PLAN_SPECS.map(([k, v]) => (
                 <div key={k} className="grid grid-cols-[96px_1fr] gap-3 px-4 py-3 text-sm sm:grid-cols-[120px_1fr]">
                   <dt className="font-medium text-muted">{k}</dt>
                   <dd className="font-semibold text-fg">{v}</dd>

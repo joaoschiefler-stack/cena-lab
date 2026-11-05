@@ -35,6 +35,11 @@
   --color-pink-soft: #fdeef5;
   --color-pink-ink: #a8326c;
 
+  /* Seções escuras (oferta): azul-marinho profundo com detalhes em cobalto e rosa */
+  --color-night: #101630;
+  --color-night-raised: #18214a;
+  --color-cobalt: #9db2ff; /* texto/ícones em cobalto sobre night (≥ 8:1) */
+
   /* Estados */
   --color-ok: #13744f;
   --color-danger: #c8323f;

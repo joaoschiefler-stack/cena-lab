@@ -1,57 +1,52 @@
-import { ArrowRight, ChevronDown, Copy, MessageSquareText, PenLine } from "lucide-react";
+import { ArrowDown, ArrowRight, Clapperboard, MessageSquareText, PenLine } from "lucide-react";
 import Link from "next/link";
 import { HeroVideo } from "@/components/gallery/HeroVideo";
 import { SeriesBadge, VideoCard } from "@/components/gallery/VideoCard";
-import { CartoonScene, StickmanScene, StoryScene } from "@/components/illustrations/Scenes";
+import { StoryScene } from "@/components/illustrations/Scenes";
 import { PhoneFrame } from "@/components/illustrations/PhoneFrame";
+import { FormatCards } from "@/components/landing/FormatCards";
+import { OfferSection } from "@/components/landing/OfferSection";
+import { StudioDemo } from "@/components/landing/StudioDemo";
 import { Faq } from "@/components/site/Faq";
-import { TimelineBar } from "@/components/TimelineBar";
 import { ButtonLink } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/Logo";
-import { DEFAULT_CONFIG, STYLES, generateMasterPrompt } from "@/lib/engine";
+import { HOME_FAQ } from "@/data/faq";
+import { FOUNDER_PLAN } from "@/data/plans";
+import { DURATIONS, STYLE_LIST } from "@/lib/engine";
 import { featuredVideo, publishedVideos } from "@/lib/gallery";
+import { DEMO_IDEA, buildDemoVariants } from "@/lib/landing-demo";
+import { getSalesConfig } from "@/lib/sales";
 
-const DEMO_IDEA = "Um homem tem 30 dias para ficar rico e sair com uma supermodelo.";
-const demo = generateMasterPrompt({
-  ...DEFAULT_CONFIG,
-  idea: DEMO_IDEA,
-  tone: "humor",
-  storyType: "desafio",
-  format: "interativo",
-});
-const demoExcerpt = demo.sections
-  .filter((s) => ["storyboard", "decisao"].includes(s.id))
-  .map((s) => `## ${s.title}\n\n${s.body}`)
-  .join("\n\n");
+const DEMO_FORMATS = [
+  { id: "completa", name: "Completa" },
+  { id: "interativo", name: "Final A/B" },
+  { id: "serie", name: "Série" },
+] as const;
 
-const FLOW = [
-  { icon: PenLine, title: "Sua ideia", text: "Uma frase basta: “um gato decide virar chef”. Escolha estilo, duração e se quer final A/B ou série." },
-  { icon: null, title: "CENA LAB", text: "Monta o prompt de produção: cenas, personagens, tempos e regras técnicas que o Claude consegue seguir." },
-  { icon: MessageSquareText, title: "Claude", text: "Você cola o prompt no Claude, que escreve e anima a história. Depois, é só gravar ou renderizar o MP4." },
-];
-
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-brand">{children}</p>;
+function Eyebrow({ children, className = "text-brand" }: { children: React.ReactNode; className?: string }) {
+  return <p className={`font-mono text-xs font-medium uppercase tracking-[0.14em] ${className}`}>{children}</p>;
 }
 
 export default function Home() {
   const featured = featuredVideo();
   const videos = publishedVideos();
+  const sales = getSalesConfig();
 
   return (
     <>
-      {/* 1. HERO — no celular: título curto e CTA, depois o vídeo/ilustração, depois a explicação */}
+      {/* 1. HERO — no celular: título, CTAs e logo depois o vídeo (ou a ilustração) */}
       <section className="relative overflow-hidden">
         <div className="bg-dots pointer-events-none absolute inset-0" aria-hidden="true" />
         <div className="pointer-events-none absolute -right-32 top-10 h-96 w-96 rounded-full bg-pink/25 blur-3xl" aria-hidden="true" />
-        <div className="relative mx-auto grid max-w-6xl gap-x-12 gap-y-8 px-4 pb-14 pt-8 sm:px-6 md:grid-cols-[1.1fr_0.9fr] md:pb-24 md:pt-16">
+        <div className="pointer-events-none absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-brand/10 blur-3xl" aria-hidden="true" />
+        <div className="relative mx-auto grid max-w-6xl gap-x-12 gap-y-8 px-4 pb-16 pt-8 sm:px-6 md:grid-cols-[1.2fr_0.8fr] md:pb-24 md:pt-16">
           <div className="anim-fade-up md:col-start-1 md:row-start-1 md:self-end">
             <p className="hidden items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-muted shadow-[var(--shadow-card)] sm:inline-flex">
               <span className="h-2 w-2 rounded-full bg-pink" aria-hidden="true" />
               Para Claude Artifacts e Claude Code
             </p>
-            <h1 className="text-[2.35rem] font-extrabold leading-[1.06] sm:mt-6 sm:text-[3.4rem] lg:text-[3.75rem]">
-              Crie suas próprias{" "}
+            <h1 className="text-[2.3rem] font-extrabold leading-[1.05] sm:mt-6 sm:text-[3.2rem] lg:text-[3.6rem]">
+              Transforme suas ideias em{" "}
               <span className="relative text-brand">
                 historinhas animadas
                 <svg viewBox="0 0 200 12" preserveAspectRatio="none" className="absolute -bottom-1 left-0 h-3 w-full" aria-hidden="true">
@@ -61,30 +56,21 @@ export default function Home() {
               com Claude.
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
-              Você escreve a ideia. O CENA LAB monta as instruções de produção, e o Claude cria a animação.
+              Escolha o estilo, crie sua história e receba as instruções de produção prontas para usar no Claude.
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2">
               <ButtonLink href="/studio" size="lg" className="w-full sm:w-auto">
-                Criar minha história
+                Quero criar minhas histórias
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </ButtonLink>
-              {/* Secundário só a partir do tablet: no celular, o visual vem logo depois do CTA. */}
-              <span className="hidden sm:contents">
-                {videos.length > 0 ? (
-                  <ButtonLink href="/exemplos" variant="secondary" size="lg">
-                    Ver animações
-                  </ButtonLink>
-                ) : (
-                  <ButtonLink href="#como" variant="ghost" size="lg">
-                    Como funciona
-                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
-                  </ButtonLink>
-                )}
-              </span>
+              <ButtonLink href="#como-funciona" variant="ghost" size="lg" className="w-full sm:w-auto">
+                Ver como funciona
+                <ArrowDown className="h-4 w-4" aria-hidden="true" />
+              </ButtonLink>
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-[280px] sm:max-w-[320px] md:col-start-2 md:row-span-2 md:row-start-1 md:self-center">
+          <div className="relative mx-auto w-full max-w-[270px] sm:max-w-[320px] md:col-start-2 md:row-span-2 md:row-start-1 md:self-center">
             {featured ? (
               <div className="anim-fade-up">
                 <div className="rounded-[30px] border border-line bg-surface p-2 shadow-[var(--shadow-lift)]">
@@ -102,14 +88,14 @@ export default function Home() {
                   <StoryScene className="h-full w-full" uid="hero" />
                 </PhoneFrame>
                 <div
-                  className="anim-fade-up absolute -left-10 top-10 hidden w-52 -rotate-3 rounded-2xl border border-line bg-surface p-3.5 shadow-[var(--shadow-lift)] sm:block"
+                  className="anim-fade-up absolute -left-12 top-10 hidden w-52 -rotate-3 rounded-2xl border border-line bg-surface p-3.5 shadow-[var(--shadow-lift)] sm:block"
                   style={{ animationDelay: "120ms" }}
                 >
                   <p className="text-xs font-semibold uppercase tracking-wide text-subtle">Sua ideia</p>
                   <p className="mt-1 font-display text-sm font-semibold leading-snug">“Um gato decide virar chef.”</p>
                 </div>
                 <div
-                  className="anim-fade-up absolute -right-20 top-[64%] hidden w-48 rotate-2 rounded-2xl border border-line bg-surface p-3.5 shadow-[var(--shadow-lift)] sm:block"
+                  className="anim-fade-up absolute -right-16 top-[62%] hidden w-48 rotate-2 rounded-2xl border border-line bg-surface p-3.5 shadow-[var(--shadow-lift)] sm:block"
                   style={{ animationDelay: "240ms" }}
                 >
                   <p className="text-xs font-semibold uppercase tracking-wide text-subtle">Prompt mestre</p>
@@ -124,67 +110,133 @@ export default function Home() {
             )}
           </div>
 
-          <p className="max-w-xl text-sm leading-relaxed text-muted md:col-start-1 md:row-start-2 md:self-start">
-            <span className="font-semibold text-fg">O vídeo não é gerado aqui.</span> O CENA LAB entrega o prompt; a animação é
-            criada pelo Claude, na sua conta. Grátis e sem cadastro.
-          </p>
+          <div className="max-w-xl md:col-start-1 md:row-start-2 md:self-start">
+            <ul className="flex flex-wrap gap-2" aria-label="O que dá para criar">
+              {["Cartoon 2D", "Stickman Stories", "Finais A/B", "Séries"].map((t) => (
+                <li key={t} className="rounded-full border border-line bg-surface px-3 py-1 text-sm font-medium text-fg">
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm leading-relaxed text-muted">
+              <span className="font-semibold text-fg">O vídeo não é gerado aqui.</span> O CENA LAB entrega as instruções; a animação é
+              criada pelo Claude, na sua conta.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* 2. COMO FUNCIONA */}
-      <section aria-labelledby="como" className="border-y border-line bg-surface">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      {/* 2. CONHEÇA O ESTÚDIO — demonstração com dados do motor real */}
+      <section id="estudio" aria-labelledby="estudio-titulo" className="scroll-mt-16 border-y border-line bg-surface">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-24">
+          <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <div>
+              <Eyebrow>Conheça o estúdio</Eyebrow>
+              <h2 id="estudio-titulo" className="mt-3 max-w-2xl text-3xl font-extrabold sm:text-5xl">
+                Da sua ideia à direção da animação.
+              </h2>
+            </div>
+            <p className="max-w-sm text-base leading-relaxed text-muted">
+              Troque as opções e veja o prompt mudar: cenas, tempos e seções saem do mesmo motor do estúdio.
+            </p>
+          </div>
+          <div className="mt-10">
+            <StudioDemo
+              idea={DEMO_IDEA}
+              variants={buildDemoVariants()}
+              formats={[...DEMO_FORMATS]}
+              styles={STYLE_LIST.map((s) => ({ id: s.id, name: s.name }))}
+              durations={DURATIONS}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 3. FORMATOS — estilo visual × formato da história */}
+      <section id="formatos" aria-labelledby="formatos-titulo" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-20 sm:px-6 md:py-24">
+        <Eyebrow>Formatos</Eyebrow>
+        <h2 id="formatos-titulo" className="mt-3 max-w-3xl text-3xl font-extrabold sm:text-5xl">
+          Escolha o visual. Depois, o jeito de contar.
+        </h2>
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted">
+          Todo vídeo combina um estilo visual com um formato de história. Cada card abre o estúdio já configurado.
+        </p>
+        <FormatCards videos={videos} />
+      </section>
+
+      {/* 4. COMO FUNCIONA */}
+      <section id="como-funciona" aria-labelledby="como" className="scroll-mt-16 border-y border-line bg-surface">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-24">
           <Eyebrow>Como funciona</Eyebrow>
-          <h2 id="como" className="mt-3 max-w-2xl text-3xl font-bold sm:text-4xl">
-            Você conta a ideia. O Claude anima.
+          <h2 id="como" className="mt-3 max-w-2xl text-3xl font-extrabold sm:text-5xl">
+            Três passos até a sua animação.
           </h2>
-          <ol className="mt-10 grid gap-4 md:grid-cols-3">
-            {FLOW.map((step, i) => (
-              <li key={step.title} className="relative">
-                <div className={`h-full rounded-3xl border p-5 ${i === 1 ? "border-brand bg-brand text-white" : "border-line bg-base"}`}>
-                  <div className="flex items-center justify-between">
-                    {step.icon ? (
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface text-brand shadow-[var(--shadow-card)]">
-                        <step.icon className="h-5 w-5" aria-hidden="true" />
-                      </span>
-                    ) : (
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface">
-                        <LogoMark className="h-7 w-7" />
-                      </span>
-                    )}
-                    <span className={`font-mono text-xs ${i === 1 ? "text-white/80" : "text-subtle"}`}>0{i + 1}</span>
+          <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-6">
+            <li className="relative">
+              <StepHead n="01" icon={<PenLine className="h-5 w-5" aria-hidden="true" />} title="Escreva sua ideia." />
+              <p className="mt-2 text-base leading-relaxed text-muted">Uma frase basta. Escolha estilo, duração e como a história termina.</p>
+              <div className="mt-5 rounded-2xl border border-line bg-base p-4" aria-hidden="true">
+                <p className="font-display text-sm font-semibold">“Um gato decide virar chef.”</p>
+                <p className="mt-3 flex flex-wrap gap-1.5 text-xs">
+                  {["Cartoon 2D", "30s", "Final A/B"].map((t) => (
+                    <span key={t} className="rounded-md bg-brand-soft px-2 py-0.5 font-medium text-brand">
+                      {t}
+                    </span>
+                  ))}
+                </p>
+              </div>
+              <StepArrow />
+            </li>
+            <li className="relative">
+              <StepHead n="02" icon={<LogoMark className="h-6 w-6" />} title="O CENA LAB monta a direção de produção." highlight />
+              <p className="mt-2 text-base leading-relaxed text-muted">Cenas com tempo, personagens, movimentos, falas e as regras que o Claude precisa seguir.</p>
+              <div className="mt-5 space-y-2 rounded-2xl bg-brand p-4" aria-hidden="true">
+                {["Storyboard", "Personagens", "Narração", "Final A/B"].map((t, i) => (
+                  <div key={t} className="flex items-center gap-2">
+                    <span className={`h-1.5 rounded-full ${i === 3 ? "w-6 bg-pink" : "w-10 bg-white/70"}`} />
+                    <span className="text-xs font-medium text-white">{t}</span>
                   </div>
-                  <h3 className="mt-5 text-lg font-bold">{step.title}</h3>
-                  <p className={`mt-1.5 text-sm leading-relaxed ${i === 1 ? "text-white/85" : "text-muted"}`}>{step.text}</p>
-                </div>
-                {i < FLOW.length - 1 && (
-                  <ArrowRight
-                    className="absolute -right-3.5 top-1/2 z-10 hidden h-5 w-5 -translate-y-1/2 rounded-full bg-surface text-pink-ink md:block"
-                    aria-hidden="true"
-                  />
-                )}
-              </li>
-            ))}
+                ))}
+              </div>
+              <StepArrow />
+            </li>
+            <li>
+              <StepHead n="03" icon={<MessageSquareText className="h-5 w-5" aria-hidden="true" />} title="Cole no Claude e crie sua animação." />
+              <p className="mt-2 text-base leading-relaxed text-muted">O Claude escreve e anima a história. Você grava a tela ou renderiza o vídeo.</p>
+              <div className="mt-5 flex items-center gap-3 rounded-2xl border border-line bg-base p-4" aria-hidden="true">
+                <span className="flex h-12 w-8 items-center justify-center rounded-md bg-fg text-white">
+                  <Clapperboard className="h-4 w-4" />
+                </span>
+                <span className="text-xs leading-snug text-muted">
+                  <span className="block font-semibold text-fg">Vídeo vertical 9:16</span>
+                  pronto para TikTok, Reels e Shorts
+                </span>
+              </div>
+            </li>
           </ol>
-          <p className="mt-6 text-sm text-muted">
-            Artifacts ou Claude Code + Remotion, gravação e exportação do MP4:{" "}
-            <Link href="/como-funciona" className="font-semibold text-brand underline-offset-4 hover:underline">
-              veja o passo a passo completo
+          <div className="mt-12 flex flex-col gap-4 rounded-3xl border border-pink/60 bg-pink-soft p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <p className="max-w-2xl text-sm leading-relaxed text-fg">
+              <span className="font-semibold">O CENA LAB não gera o MP4.</span> Ele prepara as instruções. Quem cria a animação é o Claude, na
+              sua conta; o arquivo de vídeo vem da gravação de tela ou da renderização no seu computador.
+            </p>
+            <Link href="/como-funciona" className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-pink-ink underline-offset-4 hover:underline">
+              Passo a passo completo
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
-            .
-          </p>
+          </div>
         </div>
       </section>
 
-      {/* 3. GALERIA — só aparece com vídeos reais publicados */}
+      {/* 5. RESULTADOS REAIS — só com vídeos publicados */}
       {videos.length > 0 && (
-        <section aria-labelledby="galeria" className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
+        <section aria-labelledby="galeria" className="mx-auto max-w-6xl px-4 pt-20 sm:px-6 md:pt-24">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <Eyebrow>Animações</Eyebrow>
-              <h2 id="galeria" className="mt-3 text-3xl font-bold sm:text-4xl">
+              <Eyebrow>Resultados reais</Eyebrow>
+              <h2 id="galeria" className="mt-3 text-3xl font-extrabold sm:text-5xl">
                 Feitas com o CENA LAB
               </h2>
+              <p className="mt-3 max-w-xl text-muted">Cada vídeo mostra a ideia, as configurações e o que foi ajustado fora do Claude.</p>
             </div>
             <ButtonLink href="/exemplos" variant="secondary" size="sm">
               Ver todas
@@ -199,178 +251,74 @@ export default function Home() {
         </section>
       )}
 
-      {/* 4. FUNCIONALIDADES */}
-      <section aria-labelledby="recursos" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <Eyebrow>O que você controla</Eyebrow>
-        <h2 id="recursos" className="mt-3 max-w-2xl text-3xl font-bold sm:text-4xl">
-          Do primeiro quadro ao próximo episódio
-        </h2>
-        <div className="mt-10 grid gap-4 md:grid-cols-6">
-          <article className="card-hover rounded-3xl border border-line bg-surface p-6 md:col-span-3 md:row-span-2">
-            <h3 className="text-xl font-bold">Dois estilos com regras próprias</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              Cartoon 2D ou Stickman: cada estilo muda a anatomia dos personagens, o código e o jeito de se mexer.
-            </p>
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              {[
-                { style: STYLES.cartoon, Scene: CartoonScene },
-                { style: STYLES.stickman, Scene: StickmanScene },
-              ].map(({ style, Scene }) => (
-                <div key={style.id}>
-                  <div className="aspect-[9/16] overflow-hidden rounded-2xl border border-line">
-                    <Scene className="h-full w-full" uid={`feat-${style.id}`} />
-                  </div>
-                  <p className="mt-2 text-sm font-semibold">{style.name}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 font-mono text-xs uppercase tracking-wider text-subtle">Ilustrações dos estilos — não são vídeos gerados</p>
-          </article>
+      {/* 6. OFERTA — mesma fonte de dados de /planos */}
+      <div className={videos.length > 0 ? "mt-20 md:mt-24" : ""}>
+        <OfferSection sales={sales} />
+      </div>
 
-          <article className="card-hover rounded-3xl border border-brand bg-brand p-6 text-white md:col-span-3">
-            <h3 className="text-xl font-bold">Escolha A/B no final</h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/85">
-              O episódio termina numa decisão para o público votar nos comentários, sem revelar o resultado.
-            </p>
-            <div className="mt-5 space-y-2" aria-hidden="true">
-              <div className="flex items-center gap-3 rounded-2xl bg-white/15 px-3 py-2.5">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white font-bold text-brand">A</span>
-                <span className="text-sm font-medium">Cortar o cabelo</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl bg-white/15 px-3 py-2.5">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink font-bold text-fg">B</span>
-                <span className="text-sm font-medium">Tomar banho</span>
-              </div>
-            </div>
-          </article>
-
-          <article className="card-hover rounded-3xl border border-line bg-pink-soft p-6 md:col-span-3">
-            <h3 className="text-xl font-bold">Séries com continuidade</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              Registre o que aconteceu e a opção vencedora. O próximo episódio mantém nomes, visual e acontecimentos.
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-2" aria-hidden="true">
-              {[1, 2, 3].map((n) => (
-                <span
-                  key={n}
-                  className={`rounded-full px-3 py-1 font-mono text-xs font-medium ${n === 3 ? "bg-fg text-white" : "bg-surface text-pink-ink"}`}
-                >
-                  EP. {n}
-                </span>
-              ))}
-              <span className="ml-1 font-mono text-xs text-subtle">DIA 3/30</span>
-            </div>
-          </article>
-
-          <article className="card-hover rounded-3xl border border-line bg-surface p-6 md:col-span-6">
-            <div className="grid items-center gap-6 md:grid-cols-[1fr_1.2fr]">
-              <div>
-                <h3 className="text-xl font-bold">Narração pronta para a voz</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  O Claude entrega o roteiro de narração separado. Cole no CENA LAB e copie só as falas, prontas para gravar
-                  ou para um gerador de voz externo, como o ElevenLabs. O CENA LAB não gera áudio.
-                </p>
-              </div>
-              <div className="rounded-2xl bg-base p-4 font-mono text-xs leading-relaxed text-muted" aria-hidden="true">
-                <p className="text-brand">[CENA_01 | 0,0s–3,4s]</p>
-                <p className="mt-1">
-                  <span className="rounded bg-surface px-1.5 py-0.5 text-fg">NARRADOR</span> Léo tinha trinta dias. E nenhum centavo.
-                </p>
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 font-sans text-xs font-semibold text-brand">
-                  <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-                  Copiar falas do narrador
-                </p>
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      {/* 5. PROCESSO REAL */}
-      <section aria-labelledby="demo" className="border-y border-line bg-surface">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <Eyebrow>Processo real</Eyebrow>
-          <h2 id="demo" className="mt-3 max-w-2xl text-3xl font-bold sm:text-4xl">
-            Uma frase entra. Uma direção de produção sai.
-          </h2>
-          <p className="mt-3 max-w-2xl text-muted">
-            Trecho gerado pelo CENA LAB a partir da ideia abaixo (Cartoon 2D · 30s · Humor · Desafio · Final A/B).
-          </p>
-
-          <div className="mt-10 grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
-            <div className="flex flex-col gap-4">
-              <div className="rounded-3xl bg-pink-soft p-6">
-                <p className="text-xs font-semibold uppercase tracking-wide text-pink-ink">A ideia</p>
-                <p className="mt-2 font-display text-xl font-semibold leading-snug">“{DEMO_IDEA}”</p>
-              </div>
-              <div className="rounded-3xl border border-line bg-base p-6">
-                <dl className="grid grid-cols-3 gap-3 text-center">
-                  <div>
-                    <dt className="text-xs text-subtle">Seções</dt>
-                    <dd className="mt-1 font-display text-2xl font-bold">{demo.sections.length}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-subtle">Cenas</dt>
-                    <dd className="mt-1 font-display text-2xl font-bold">
-                      {demo.plan.sceneCount.min}–{demo.plan.sceneCount.max}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-subtle">Palavras</dt>
-                    <dd className="mt-1 font-display text-2xl font-bold">~{Math.round(demo.wordCount / 100) * 100}</dd>
-                  </div>
-                </dl>
-                <div className="mt-5">
-                  <TimelineBar plan={demo.plan} animated />
-                </div>
-              </div>
-            </div>
-
-            <div className="relative overflow-hidden rounded-3xl border border-line bg-base">
-              <div className="flex items-center justify-between border-b border-line px-5 py-3">
-                <span className="text-sm font-semibold">Trecho do prompt mestre</span>
-                <span className="font-mono text-xs text-subtle">storyboard + final A/B</span>
-              </div>
-              <pre className="max-h-[360px] overflow-hidden whitespace-pre-wrap px-5 py-4 font-mono text-[12px] leading-relaxed text-fg/80">
-                {demoExcerpt}
-              </pre>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-base to-transparent" />
-              <div className="absolute inset-x-0 bottom-5 flex justify-center">
-                <ButtonLink href={`/studio?ideia=${encodeURIComponent(DEMO_IDEA)}`}>
-                  Gerar o prompt completo
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </ButtonLink>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. FAQ + CTA */}
-      <section aria-labelledby="faq" className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.6fr_1.4fr]">
+      {/* 7. FAQ */}
+      <section id="duvidas" aria-labelledby="faq" className="mx-auto grid max-w-6xl scroll-mt-16 gap-10 px-4 py-20 sm:px-6 md:py-24 lg:grid-cols-[0.6fr_1.4fr]">
         <div>
           <Eyebrow>Dúvidas</Eyebrow>
-          <h2 id="faq" className="mt-3 text-3xl font-bold">
+          <h2 id="faq" className="mt-3 text-3xl font-extrabold sm:text-4xl">
             Perguntas frequentes
           </h2>
         </div>
-        <Faq />
+        <Faq items={HOME_FAQ} />
       </section>
 
+      {/* 8. CTA FINAL — leva à oferta; o estúdio fica como alternativa */}
       <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
         <div className="relative overflow-hidden rounded-[36px] bg-brand px-6 py-14 text-center text-white sm:px-12">
           <div className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full bg-pink/40 blur-2xl" aria-hidden="true" />
           <div className="pointer-events-none absolute -bottom-20 -right-10 h-64 w-64 rounded-full bg-white/10 blur-2xl" aria-hidden="true" />
           <h2 className="relative text-3xl font-extrabold sm:text-5xl">Qual é a sua história?</h2>
           <p className="relative mx-auto mt-3 max-w-lg text-white/85">
-            Escreva uma frase e saia com a direção completa de uma animação para o Claude executar.
+            {sales.canSell
+              ? `${FOUNDER_PLAN.name}: ${FOUNDER_PLAN.priceLabel}, ${FOUNDER_PLAN.billing.toLowerCase()}.`
+              : `O ${FOUNDER_PLAN.name} está em pré-lançamento. Veja o que está incluído e teste o estúdio enquanto isso.`}
           </p>
-          <ButtonLink href="/studio" size="lg" variant="secondary" className="relative mt-8 border-transparent">
-            Criar minha história
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </ButtonLink>
+          <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <ButtonLink href="/planos" size="lg" variant="secondary" className="w-full border-transparent sm:w-auto" data-cta="final">
+              {sales.canSell ? "Quero o acesso fundador" : "Conhecer o plano fundador"}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </ButtonLink>
+            <ButtonLink href="/studio" size="lg" variant="ghost" className="w-full text-white hover:bg-white/10 hover:text-white sm:w-auto">
+              Testar o estúdio
+            </ButtonLink>
+          </div>
         </div>
       </section>
     </>
+  );
+}
+
+function StepHead({ n, icon, title, highlight = false }: { n: string; icon: React.ReactNode; title: string; highlight?: boolean }) {
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <span
+          className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-[var(--shadow-card)] ${
+            highlight ? "bg-surface ring-2 ring-brand" : "bg-surface text-brand"
+          }`}
+        >
+          {icon}
+        </span>
+        <span className="font-mono text-sm text-brand">{n}</span>
+      </div>
+      <h3 className="mt-4 text-xl font-bold leading-snug">{title}</h3>
+    </div>
+  );
+}
+
+/** Seta entre os passos: para baixo no celular, para o lado no desktop. */
+function StepArrow() {
+  return (
+    <span
+      className="absolute -bottom-8 left-5 flex h-6 w-6 items-center justify-center rounded-full bg-pink-soft text-pink-ink md:-right-5 md:bottom-auto md:left-auto md:top-2.5"
+      aria-hidden="true"
+    >
+      <ArrowRight className="h-3.5 w-3.5 rotate-90 md:rotate-0" />
+    </span>
   );
 }
