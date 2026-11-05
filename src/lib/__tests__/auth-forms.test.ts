@@ -92,9 +92,18 @@ describe("login", () => {
     expect((await performLogin(client, form({ email: "ana@exemplo.com", password: "historia42" }))).message).toMatch(/Confirme seu e-mail/);
   });
 
-  it("sucesso leva à conta (redirect feito no servidor)", async () => {
+  it("sucesso leva ao painel (redirect feito no servidor; sem licença, o /app manda para a conta)", async () => {
     const s = await performLogin(fakeClient(), form({ email: " ana@exemplo.com ", password: "historia42" }));
-    expect(s).toMatchObject({ status: "success", redirectTo: "/conta" });
+    expect(s).toMatchObject({ status: "success", redirectTo: "/app" });
+  });
+
+  it("respeita ?next= interno e ignora destinos externos", async () => {
+    const ok = await performLogin(fakeClient(), form({ email: "ana@exemplo.com", password: "historia42", next: "/app" }));
+    expect(ok.redirectTo).toBe("/app");
+    for (const next of ["https://malicioso.com", "//malicioso.com", "/\\malicioso.com"]) {
+      const s = await performLogin(fakeClient(), form({ email: "ana@exemplo.com", password: "historia42", next }));
+      expect(s.redirectTo).toBe("/app");
+    }
   });
 });
 

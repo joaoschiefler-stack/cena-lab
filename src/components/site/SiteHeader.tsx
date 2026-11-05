@@ -8,10 +8,16 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { navLinks } from "@/lib/site";
 
-export function SiteHeader({ hasVideos }: { hasVideos: boolean }) {
+/** Quem está vendo, já verificado no servidor: visitante, conta sem licença ou licença ativa. */
+export type HeaderViewer = "guest" | "member" | "licensed";
+
+export function SiteHeader({ hasVideos, viewer = "guest" }: { hasVideos: boolean; viewer?: HeaderViewer }) {
   const pathname = usePathname();
   const links = navLinks(hasVideos);
   const [open, setOpen] = useState(false);
+  const account = viewer === "guest" ? { href: "/login", label: "Entrar" } : { href: "/conta", label: "Minha conta" };
+  // Quem já tem licença vai para o painel, sem ser convidado a comprar de novo.
+  const cta = viewer === "licensed" ? { href: "/app", short: "Meu painel", long: "Meu painel" } : { href: "/studio", short: "Criar história", long: "Criar minha história" };
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/80 bg-base/85 backdrop-blur-xl">
@@ -38,16 +44,16 @@ export function SiteHeader({ hasVideos }: { hasVideos: boolean }) {
 
         <div className="flex items-center gap-1">
           <Link
-            href="/login"
+            href={account.href}
             className="hidden rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-fg md:inline-flex"
           >
-            Entrar
+            {account.label}
           </Link>
           {/* CTA sempre visível, inclusive no celular (visitantes chegam pelas redes) */}
-          {pathname !== "/studio" && (
-            <ButtonLink href="/studio" size="sm" className="px-3.5 sm:px-4">
-              <span className="sm:hidden">Criar história</span>
-              <span className="hidden sm:inline">Criar minha história</span>
+          {pathname !== cta.href && (
+            <ButtonLink href={cta.href} size="sm" className="px-3.5 sm:px-4" data-cta="header">
+              <span className="sm:hidden">{cta.short}</span>
+              <span className="hidden sm:inline">{cta.long}</span>
             </ButtonLink>
           )}
           <button
@@ -77,11 +83,11 @@ export function SiteHeader({ hasVideos }: { hasVideos: boolean }) {
             </Link>
           ))}
           <Link
-            href="/login"
+            href={account.href}
             onClick={() => setOpen(false)}
             className="mt-2 block rounded-2xl border border-line px-4 py-3.5 text-base font-medium text-fg hover:bg-brand-soft"
           >
-            Entrar
+            {account.label}
           </Link>
         </nav>
       )}

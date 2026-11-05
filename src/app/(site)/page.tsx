@@ -8,6 +8,7 @@ import { FormatCards } from "@/components/landing/FormatCards";
 import { OfferSection } from "@/components/landing/OfferSection";
 import { StudioDemo } from "@/components/landing/StudioDemo";
 import { Faq } from "@/components/site/Faq";
+import { ViewerSwitch } from "@/components/site/ViewerSwitch";
 import { ButtonLink } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/Logo";
 import { HOME_FAQ } from "@/data/faq";
@@ -59,10 +60,21 @@ export default function Home() {
               Escolha o estilo, crie sua história e receba as instruções de produção prontas para usar no Claude.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <ButtonLink href="/studio" size="lg" className="w-full sm:w-auto">
-                Quero criar minhas histórias
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </ButtonLink>
+              {/* Quem já tem licença vai direto ao painel, sem ser convidado a comprar de novo. */}
+              <ViewerSwitch
+                fallback={
+                  <ButtonLink href="/studio" size="lg" className="w-full sm:w-auto">
+                    Quero criar minhas histórias
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </ButtonLink>
+                }
+                active={
+                  <ButtonLink href="/app" size="lg" className="w-full sm:w-auto" data-cta="painel">
+                    Ir para meu painel
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </ButtonLink>
+                }
+              />
               <ButtonLink href="#como-funciona" variant="ghost" size="lg" className="w-full sm:w-auto">
                 Ver como funciona
                 <ArrowDown className="h-4 w-4" aria-hidden="true" />
@@ -279,10 +291,20 @@ export default function Home() {
               : `O ${FOUNDER_PLAN.name} está em pré-lançamento. Veja o que está incluído e teste o estúdio enquanto isso.`}
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <ButtonLink href="/planos" size="lg" variant="secondary" className="w-full border-transparent sm:w-auto" data-cta="final">
-              {sales.canSell ? "Quero o acesso fundador" : "Conhecer o plano fundador"}
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </ButtonLink>
+            <ViewerSwitch
+              fallback={
+                <ButtonLink href="/planos" size="lg" variant="secondary" className="w-full border-transparent sm:w-auto" data-cta="final">
+                  {sales.canSell ? "Quero o acesso fundador" : "Conhecer o plano fundador"}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </ButtonLink>
+              }
+              active={
+                <ButtonLink href="/app" size="lg" variant="secondary" className="w-full border-transparent sm:w-auto" data-cta="final">
+                  Ir para meu painel
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </ButtonLink>
+              }
+            />
             <ButtonLink href="/studio" size="lg" variant="ghost" className="w-full text-white hover:bg-white/10 hover:text-white sm:w-auto">
               Testar o estúdio
             </ButtonLink>

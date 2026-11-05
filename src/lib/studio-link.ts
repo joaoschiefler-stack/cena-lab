@@ -36,3 +36,23 @@ export function parseStudioPreset(search: string): Partial<StudioConfig> {
   if ((DURATIONS as number[]).includes(duration)) patch.duration = duration as DurationSec;
   return patch;
 }
+
+/**
+ * Ações vindas do painel (/app), sempre sobre dados deste navegador:
+ * ?serie=<id> continua uma série salva; ?continuar=<id> transforma uma geração
+ * do histórico em série; ?historico=<id> reabre o resultado sem duplicá-lo.
+ */
+export type StudioIntent = { kind: "serie" | "continuar" | "historico"; id: string };
+
+export function parseStudioIntent(search: string): StudioIntent | null {
+  const params = new URLSearchParams(search);
+  for (const kind of ["serie", "continuar", "historico"] as const) {
+    const id = params.get(kind)?.trim();
+    if (id && /^[\w-]{1,64}$/.test(id)) return { kind, id };
+  }
+  return null;
+}
+
+export const seriesHref = (id: string) => `/studio?serie=${encodeURIComponent(id)}`;
+export const continueHref = (id: string) => `/studio?continuar=${encodeURIComponent(id)}`;
+export const reopenHref = (id: string) => `/studio?historico=${encodeURIComponent(id)}`;

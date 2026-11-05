@@ -11,8 +11,8 @@ export const metadata: Metadata = { title: "Minha conta", robots: { index: false
 async function AccountContent({ searchParams }: { searchParams: PageProps<"/conta">["searchParams"] }) {
   const access = await getAccess();
   if (access.status === "anonymous") redirect("/login");
-  const { senha } = await searchParams;
-  return <AccountPanel access={access} passwordUpdated={senha === "atualizada"} />;
+  const { senha, aviso } = await searchParams;
+  return <AccountPanel access={access} passwordUpdated={senha === "atualizada"} notice={typeof aviso === "string" ? aviso : null} />;
 }
 
 export default function AccountPage({ searchParams }: PageProps<"/conta">) {

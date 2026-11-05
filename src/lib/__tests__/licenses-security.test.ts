@@ -44,8 +44,11 @@ describe("migration de perfis e licenças", () => {
   });
 
   it("cliente não pode criar, ativar, alterar ou apagar licenças", () => {
-    const policies = sql.match(/create policy[\s\S]*?;/g) ?? [];
+    // Só as políticas de licenças/perfis: as tabelas de histórias têm escrita do próprio dono.
+    const policies = (sql.match(/create policy[\s\S]*?;/g) ?? []).filter((p) => /on public\.(licenses|profiles)\b/.test(p));
+    expect(policies.length).toBeGreaterThan(0);
     for (const p of policies) expect(p).toMatch(/for select/);
+    expect(sql).not.toMatch(/grant [^;]*(insert|update|delete)[^;]* on public\.licenses/);
     expect(sql).toMatch(/revoke insert, update, delete, truncate on public\.licenses from anon, authenticated/);
   });
 

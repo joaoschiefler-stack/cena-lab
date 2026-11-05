@@ -20,7 +20,22 @@ function formatDate(iso: string | null) {
 }
 
 /** Conteúdo da conta a partir do acesso verificado no servidor. */
-export function AccountPanel({ access, passwordUpdated = false }: { access: Access; passwordUpdated?: boolean }) {
+const NOTICES = {
+  "sem-licenca": "O painel do CENA LAB é para quem tem o plano. Sua conta ainda não tem uma licença ativa.",
+  "licenca-revogada": "Sua licença foi revogada, então o painel não está disponível. Suas histórias salvas não foram apagadas.",
+} as const;
+
+export function AccountPanel({
+  access,
+  passwordUpdated = false,
+  notice = null,
+}: {
+  access: Access;
+  passwordUpdated?: boolean;
+  /** Motivo de ter sido enviado do painel para cá (?aviso=). */
+  notice?: string | null;
+}) {
+  const noticeText = notice && notice in NOTICES ? NOTICES[notice as keyof typeof NOTICES] : null;
   if (access.status === "unconfigured") {
     return (
       <div>
@@ -41,6 +56,11 @@ export function AccountPanel({ access, passwordUpdated = false }: { access: Acce
 
   return (
     <div className="space-y-6">
+      {noticeText && access.status !== "active" && (
+        <p role="status" className="rounded-2xl border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-fg" data-account-notice>
+          {noticeText}
+        </p>
+      )}
       {passwordUpdated && (
         <p role="status" className="rounded-2xl border border-ok/30 bg-ok/5 px-4 py-3 text-sm text-fg">
           Senha atualizada.
@@ -98,10 +118,17 @@ export function AccountPanel({ access, passwordUpdated = false }: { access: Acce
       )}
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <ButtonLink href="/studio" size="lg" className="flex-1">
-          Abrir o estúdio
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </ButtonLink>
+        {access.status === "active" ? (
+          <ButtonLink href="/app" size="lg" className="flex-1">
+            Abrir meu painel
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </ButtonLink>
+        ) : (
+          <ButtonLink href="/studio" size="lg" className="flex-1">
+            Abrir o estúdio
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </ButtonLink>
+        )}
         <form action={logoutAction} className="sm:w-auto">
           <Button type="submit" variant="secondary" size="lg" className="w-full">
             <LogOut className="h-4 w-4" aria-hidden="true" />

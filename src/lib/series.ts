@@ -33,6 +33,27 @@ export function saveSeries(draft: ContinuationDraft, lastConfig: StudioConfig, l
   return id;
 }
 
+/**
+ * Junta séries vindas da conta sem duplicar (mesmo id: fica a atualizada mais
+ * recentemente). Nunca remove séries locais: novas entram só se couberem no limite.
+ */
+export function mergeSeries(incoming: SeriesRecord[]): number {
+  const current = store.get();
+  let changed = 0;
+  let room = Math.max(0, MAX_SERIES - current.length);
+  const byId = new Map(current.map((r) => [r.id, r]));
+  for (const r of [...incoming].sort((a, b) => b.updatedAt - a.updatedAt)) {
+    const mine = byId.get(r.id);
+    if (mine ? r.updatedAt > mine.updatedAt : room-- > 0) {
+      byId.set(r.id, r);
+      changed++;
+    }
+  }
+  if (!changed) return 0;
+  store.set([...byId.values()].sort((a, b) => b.updatedAt - a.updatedAt));
+  return changed;
+}
+
 export function removeSeries(id: string) {
   store.set(store.get().filter((r) => r.id !== id));
 }

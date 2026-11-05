@@ -10,6 +10,8 @@ Este guia cobre o que já está no código e o que falta conectar. Nada aqui ati
 | `/login`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha`, `/conta` | Prontas. Sem Supabase, mostram "Contas em configuração" e o formulário fica desativado. |
 | Sessão e verificação de acesso | No servidor (`getUser()` valida o token no Supabase). Nada depende de `localStorage`. |
 | Licenças | Tabelas e RLS na migration. Só leitura para o próprio usuário; escrita só no servidor com credencial administrativa. |
+| Painel `/app` | Pronto. Sem Supabase: "modo local" (só dados do navegador). Com Supabase: sem login → `/login?next=/app` (307 no proxy); sem licença ou revogada → `/conta` com aviso; licença ativa → painel. |
+| Histórias na conta | Tabelas `story_series` e `prompt_history` com RLS (dono lê/grava/apaga só as próprias linhas). Envio e recuperação só por clique no painel. |
 | Gerador premium | **Ainda não protegido.** O engine roda no navegador e está no bundle público; o estúdio segue aberto como demonstração (`PREMIUM_GENERATION_ENFORCED = false`). |
 | Kiwify | **Não integrada.** Só os pontos de integração estão preparados (veja a seção 5). |
 
@@ -24,7 +26,7 @@ Este guia cobre o que já está no código e o que falta conectar. Nada aqui ati
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```
    Em produção, configure as mesmas variáveis no provedor de hospedagem, com a URL pública real.
-4. Rode a migration `supabase/migrations/20261104120000_profiles_and_licenses.sql`:
+4. Rode as migrations, **nesta ordem**: `supabase/migrations/20261104120000_profiles_and_licenses.sql` e `supabase/migrations/20261105120000_stories.sql`:
    - pelo **SQL Editor** do painel (cole e execute), ou
    - pela Supabase CLI: `supabase link` e depois `supabase db push`.
 5. Em **Authentication → URL Configuration**:
@@ -37,7 +39,7 @@ Este guia cobre o que já está no código e o que falta conectar. Nada aqui ati
 
 ### Verificar a RLS
 
-Depois da migration, rode `supabase/tests/verificar_rls.sql` no SQL Editor, trocando os UUIDs por dois usuários de teste. O script roda numa transação desfeita: o usuário B não vê a licença do usuário A, e o `insert` como usuário comum falha com "permission denied".
+Depois das migrations, rode `supabase/tests/verificar_rls.sql` (licenças) e `supabase/tests/verificar_rls_historias.sql` (histórias) no SQL Editor, trocando os UUIDs por dois usuários de teste. O script roda numa transação desfeita: o usuário B não vê a licença do usuário A, e o `insert` como usuário comum falha com "permission denied".
 
 ## 3. Testar o login
 
@@ -65,6 +67,22 @@ where user_id = '<id>';
 ```
 
 Apague essas linhas de teste antes de abrir as vendas.
+
+### Testar o painel
+
+1. Sem licença: entre e abra `/app`. Você deve cair em `/conta` com o aviso "Sua conta ainda não tem uma licença ativa".
+2. Crie uma licença de teste (SQL acima) e abra `/app` de novo: o painel aparece com seu e-mail no cabeçalho, e o CTA do site vira "Meu painel".
+3. Gere um prompt no estúdio, use "Registrar e gerar o episódio 2", salve a ficha e volte a `/app`: a série aparece em "Minhas histórias".
+4. Em "Cópia na sua conta", confirme que os dados são seus e clique em "Salvar deste navegador na conta". Confira as linhas em `story_series` e `prompt_history` (Table Editor).
+5. Abra `/app` em outro navegador com a mesma conta e use "Trazer da conta para este navegador".
+6. Revogue a licença: `/app` passa a mandar para `/conta`; nada é apagado (nem no navegador, nem na conta).
+
+### Como o painel guarda as histórias
+
+- O estúdio continua trabalhando com o `localStorage` do navegador (`cenalab:series:v1`, `cenalab:history:v1`). O painel lê esses mesmos dados.
+- Enviar para a conta é sempre explícito, com confirmação de que os dados do navegador são do usuário. A chave `(user_id, local_id)` evita duplicar ao enviar de novo.
+- Trazer da conta junta por id, sem apagar nada local; com o limite cheio (20 séries, 12 prompts), entram só as que cabem.
+- O `user_id` gravado vem da sessão validada no servidor (Server Actions em `src/lib/cloud/actions.ts`), nunca do navegador; a RLS repete a regra no banco.
 
 ## 4. Modo comercial
 
@@ -103,3 +121,5 @@ Hoje o engine roda no navegador, então esconder páginas **não** protege nada.
 1. Mover a geração para o servidor (Server Action ou Route Handler) que chama `hasPremiumAccess()` antes de gerar.
 2. Tirar o engine do bundle do navegador, mantendo `src/lib/engine` e seus testes intactos.
 3. Só então mudar `PREMIUM_GENERATION_ENFORCED` para `true` e ajustar os textos da conta e dos planos.
+
+Exigir login no `/app` organiza a experiência de quem comprou, mas **não** protege o engine: `/studio` continua público e o gerador continua no bundle.

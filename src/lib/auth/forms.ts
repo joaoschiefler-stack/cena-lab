@@ -113,7 +113,9 @@ export async function performLogin(client: AuthClient | null, form: FormData): P
 
   const { error } = await client.auth.signInWithPassword({ email, password });
   if (error) return fail(email, {}, authErrorMessage(error));
-  return { status: "success", message: "Login feito.", fieldErrors: {}, email, redirectTo: "/conta" };
+  // Volta para onde a pessoa queria ir (só caminhos internos); por padrão, o painel.
+  // Sem licença, /app manda para /conta, que não redireciona de volta: sem loop.
+  return { status: "success", message: "Login feito.", fieldErrors: {}, email, redirectTo: safeNextPath(readField(form, "next"), "/app") };
 }
 
 export async function performSignup(client: AuthClient | null, form: FormData, confirmUrl: string): Promise<AuthFormState> {

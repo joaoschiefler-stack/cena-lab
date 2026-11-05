@@ -41,7 +41,7 @@ const SECTIONS = [
     body: [
       "Criar conta é opcional. As contas usam o Supabase (serviço de autenticação e banco de dados), que armazena seu e-mail e sua senha em formato protegido (hash) — nós não temos acesso à sua senha.",
       "Também guardamos um perfil básico (seu e-mail e a data de criação) e, quando houver, suas licenças: plano, status (ativa ou revogada), datas e, no futuro, os identificadores da compra informados pela plataforma de pagamento.",
-      "Cada usuário só consegue consultar os próprios dados. Ideias, prompts, histórico, séries e roteiros de narração continuam apenas no seu navegador e não vão para a conta.",
+      "Cada usuário só consegue consultar e alterar os próprios dados. Ideias, prompts, histórico, séries e roteiros de narração ficam no seu navegador. Só vão para a conta se você, no painel, clicar em “Salvar deste navegador na conta”: nesse caso guardamos as séries (título, ideia, personagens, cenários, objetivo, episódios registrados e configurações) e o histórico de prompts (ideia e configurações). Os roteiros de narração não são enviados. Você pode apagar essas cópias pelo painel.",
       "Para excluir sua conta e seus dados, entre em contato pelo canal de suporte que será publicado junto com a abertura das vendas.",
     ],
   },

@@ -4,10 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { DEFAULT_CONFIG, LIMITS, generateMasterPrompt, validateConfig } from "@/lib/engine";
 import type { ConfigErrors, OutputMode, StudioConfig } from "@/lib/engine";
-import { addHistoryEntry } from "@/lib/history";
+import { addHistoryEntry, getHistoryEntry } from "@/lib/history";
 import type { HistoryEntry } from "@/lib/history";
-import { saveSeries } from "@/lib/series";
-import { parseStudioPreset } from "@/lib/studio-link";
+import { getSeries, saveSeries } from "@/lib/series";
+import { parseStudioIntent, parseStudioPreset } from "@/lib/studio-link";
 import { draftFromRecord, draftFromResult, nextEpisodeConfig, seriesContextFromDraft } from "@/lib/series-draft";
 import type { ContinuationDraft, SeriesRecord } from "@/lib/series-draft";
 import { ContinuationPanel } from "./ContinuationPanel";
@@ -26,6 +26,8 @@ export function Studio({ header }: { header?: ReactNode }) {
   /** Série salva à qual o prompt atual pertence (para continuar sem duplicar). */
   const [seriesId, setSeriesId] = useState<string | null>(null);
   const ideaRef = useRef<HTMLTextAreaElement>(null);
+  /** Aviso quando um link do painel aponta para algo que não está neste navegador. */
+  const [notice, setNotice] = useState<string | null>(null);
 
   // Ao montar: aplica formato/estilo/duração dos links da homepage e adota o que já
   // foi digitado antes da hidratação (rede lenta) ou, se nada foi digitado, o ?ideia=.
@@ -34,6 +36,23 @@ export function Studio({ header }: { header?: ReactNode }) {
     const typed = ideaRef.current?.value.trim() ? ideaRef.current.value : "";
     const idea = (typed || fromUrl).slice(0, LIMITS.ideaMax);
     setConfig((c) => ({ ...c, ...preset, idea: c.idea.trim() ? c.idea : idea }));
+
+    // Links do painel (/app): continuar uma série, transformar uma geração em série ou reabri-la.
+    const intent = parseStudioIntent(window.location.search);
+    if (!intent) return;
+    window.history.replaceState(null, "", "/studio");
+    if (intent.kind === "serie") {
+      const record = getSeries(intent.id);
+      if (record) startContinuation(draftFromRecord(record), record.lastConfig);
+      else setNotice("Essa série não está salva neste navegador. Se ela estiver na sua conta, restaure-a pelo painel.");
+      return;
+    }
+    const entry = getHistoryEntry(intent.id);
+    if (!entry) setNotice("Esse prompt não está no histórico deste navegador.");
+    else if (intent.kind === "continuar") startContinuation(draftFromResult(entry.config, entry.title, null), entry.config);
+    else handleOpenHistory(entry);
+    // Só na montagem: as funções acima leem os stores locais naquele momento.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // O prompt é derivado da configuração: trocar o modo ou a variação o atualiza na hora.
@@ -46,11 +65,14 @@ export function Studio({ header }: { header?: ReactNode }) {
     }
   }, [view, config]);
 
-  function showResult(next: StudioConfig) {
-    const generated = generateMasterPrompt(next);
+  /** `record = false` ao reabrir uma geração antiga: não cria outro registro no histórico. */
+  function showResult(next: StudioConfig, record = true) {
     setConfig(next);
     setView("result");
-    addHistoryEntry(generated.title, generated.config);
+    if (record) {
+      const generated = generateMasterPrompt(next);
+      addHistoryEntry(generated.title, generated.config);
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -109,7 +131,7 @@ export function Studio({ header }: { header?: ReactNode }) {
     setErrors({});
     setContinuation(null);
     setSeriesId(null);
-    showResult(entry.config);
+    showResult(entry.config, false);
   }
 
   if (view === "result" && result) {
@@ -140,6 +162,11 @@ export function Studio({ header }: { header?: ReactNode }) {
   return (
     <>
       {header}
+      {notice && (
+        <p role="status" className="mb-6 rounded-2xl border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-fg">
+          {notice}
+        </p>
+      )}
       {!continuation && config.series && (
         <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
           <span className="text-muted">

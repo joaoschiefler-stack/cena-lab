@@ -5,7 +5,8 @@ export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
-// Só nas rotas de conta: o resto do site continua estático e sem custo extra.
+// Renova a sessão nas rotas de conta e no painel. No site público, a sessão só é lida
+// quando existe cookie do Supabase (lib/viewer.ts).
 export const config = {
-  matcher: ["/conta/:path*", "/login", "/cadastro", "/recuperar-senha", "/redefinir-senha", "/auth/:path*"],
+  matcher: ["/app/:path*", "/conta/:path*", "/login", "/cadastro", "/recuperar-senha", "/redefinir-senha", "/auth/:path*"],
 };

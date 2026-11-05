@@ -81,6 +81,13 @@ Ordem das seções em `src/app/page.tsx`: hero (vídeo em destaque ou ilustraç�
 - A oferta (`components/landing/OfferSection.tsx`) usa `src/data/plans.ts`, a mesma fonte de `/planos`, e o mesmo modo comercial do servidor (`CENA_SALES_MODE`).
 - Links para o estúdio já configurado: `/studio?formato=completa|interativo|serie&estilo=cartoon|stickman&duracao=15|30|45|60&ideia=...` (`lib/studio-link.ts`). Valores desconhecidos são ignorados.
 
+## Painel do cliente (`/app`)
+
+Área de quem comprou: banner, escolha de estilo, "Minhas histórias" (séries e prompts anteriores) e cópia das histórias na conta. Código em `src/app/app/` e `src/components/dashboard/`; regras de acesso em `src/lib/dashboard-access.ts` (decididas no servidor). O site público fica em `src/app/(site)/`, com cabeçalho próprio.
+
+- O painel reaproveita os dados do estúdio (`localStorage`) e o fluxo de continuação existente: os cards abrem `/studio?serie=<id>`, `/studio?continuar=<id>` (transformar um prompt em série) ou `/studio?historico=<id>` (reabrir sem duplicar).
+- Sem Supabase, o painel abre em "modo local". Com Supabase: sem login → login; sem licença → conta; licença ativa → painel. Configuração e testes em `docs/contas-e-planos.md`.
+
 ## Galeria de animações reais
 
 Os dados ficam em `src/data/videos.ts`, uma fonte única para o destaque da homepage e para `/exemplos`. Um vídeo só aparece quando três condições valem ao mesmo tempo:

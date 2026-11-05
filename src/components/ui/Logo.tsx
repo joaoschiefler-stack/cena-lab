@@ -15,9 +15,9 @@ export function Wordmark({ className = "" }: { className?: string }) {
   );
 }
 
-export function Logo() {
+export function Logo({ href = "/" }: { href?: string }) {
   return (
-    <Link href="/" className="group inline-flex items-center gap-2" aria-label={`${SITE.name} — início`}>
+    <Link href={href} className="group inline-flex items-center gap-2" aria-label={`${SITE.name} — início`}>
       <LogoMark className="h-8 w-8 transition-transform duration-300 group-hover:-rotate-6" />
       <Wordmark className="text-[17px] text-fg" />
     </Link>

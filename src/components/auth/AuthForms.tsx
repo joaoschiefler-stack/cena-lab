@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useActionState } from "react";
 import { Button } from "@/components/ui/Button";
 import { loginAction, resetRequestAction, signupAction, updatePasswordAction } from "@/lib/auth/actions";
 import { INITIAL_FORM_STATE, PASSWORD_MIN } from "@/lib/auth/forms";
@@ -42,11 +43,20 @@ function AuthForm({
 
 const passwordHint = `Mínimo de ${PASSWORD_MIN} caracteres, com letras e números.`;
 
+/** Repassa o ?next= da URL (validado de novo no servidor com safeNextPath). */
+function NextField() {
+  const next = useSearchParams().get("next");
+  return next ? <input type="hidden" name="next" value={next} /> : null;
+}
+
 export function LoginForm({ configured }: { configured: boolean }) {
   return (
     <AuthForm action={loginAction} configured={configured} submit="Entrar" pendingLabel="Entrando…">
       {(state) => (
         <>
+          <Suspense fallback={null}>
+            <NextField />
+          </Suspense>
           <Field name="email" label="E-mail" type="email" autoComplete="email" state={state} defaultValue={state.email} />
           <Field name="password" label="Senha" type="password" autoComplete="current-password" state={state} />
           <p className="-mt-1 text-right text-sm">

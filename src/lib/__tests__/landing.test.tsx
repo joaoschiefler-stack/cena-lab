@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import Home from "@/app/page";
+import Home from "@/app/(site)/page";
 import { FormatCards } from "@/components/landing/FormatCards";
 import { OfferSection } from "@/components/landing/OfferSection";
 import { HOME_FAQ } from "@/data/faq";

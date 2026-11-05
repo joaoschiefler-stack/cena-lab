@@ -31,7 +31,7 @@ export const FAQ = [
   },
   {
     q: "Minhas ideias ficam salvas em algum servidor?",
-    a: "Não. O prompt é montado no seu navegador. Histórico, séries e roteiros de narração ficam apenas no armazenamento local do seu navegador, e você pode apagá-los quando quiser. Se criar uma conta, guardamos só o e-mail e o status do seu acesso.",
+    a: "Não. O prompt é montado no seu navegador. Histórico, séries e roteiros de narração ficam apenas no armazenamento local do seu navegador, e você pode apagá-los quando quiser. Se criar uma conta, guardamos o e-mail e o status do seu acesso; histórias só vão para a conta quando você pede, no painel.",
   },
 ];
 
