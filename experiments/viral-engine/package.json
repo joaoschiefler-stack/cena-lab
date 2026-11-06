@@ -11,7 +11,9 @@
     "render": "node scripts/render.mjs",
     "stills": "node scripts/stills.mjs",
     "verify": "node scripts/verify-render.mjs",
-    "repeat": "node scripts/repeatability.mjs"
+    "repeat": "node scripts/repeatability.mjs",
+    "align": "node scripts/align-reference.mjs",
+    "local-voice": "node scripts/local-voice.mjs"
   },
   "dependencies": {
     "@fontsource/anton": "5.3.0",

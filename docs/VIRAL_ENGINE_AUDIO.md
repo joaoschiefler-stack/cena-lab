@@ -81,3 +81,22 @@ Uma regra só: `frame = Math.round(segundos × 30)`. Erro máximo de meio frame 
 - **Validado com áudio real gerado localmente** (voz do Windows) nos episódios de exemplo e no piloto: importação, resolução, render com AAC, checagens medidas no MP4.
 - **Validado só com fixtures sintéticas** (marcadas nos testes): adaptadores da ElevenLabs (TTS com timestamps e Forced Alignment). Nenhuma resposta real da ElevenLabs foi usada — falta uma conta/arquivo de exemplo para confirmar o formato com um arquivo verdadeiro.
 - **Não validado:** narração humana gravada; voz ElevenLabs com tom sarcástico.
+
+## Áudio sem timestamps (MP3 baixado do site da ElevenLabs)
+
+O site da ElevenLabs entrega só o MP3. Para não depender da API, `scripts/align-reference.mjs` gera os tempos localmente:
+1. a voz do Windows lê o mesmo roteiro (uma ou mais leituras de referência, com o início de cada palavra informado pelo sintetizador);
+2. o espectro de cada referência é casado com o do MP3 por DTW (do áudio inteiro, incluindo as pausas);
+3. inícios que caem em pausa medida no MP3 vão para o fim da pausa;
+4. com várias referências, fica a mediana de cada palavra.
+
+```bash
+node scripts/local-voice.mjs episodio.json --rate=1.32          # referência 1 (+ narracao.timestamps.json)
+node scripts/align-reference.mjs episodio.json voz-elevenlabs.mp3 --ref=a.wav,b.wav,c.wav --ref-timestamps=a.json,b.json,c.json
+```
+
+Precisão medida:
+- **contra gabarito** (alvo = voz Maria, referência = voz Daniel, ambas com tempos conhecidos): mediana 8 ms, 90% ≤ 19 ms, 98% das palavras dentro de 1 frame, pior caso 106 ms;
+- **no MP3 real da ElevenLabs (voz Adam, 43,9 s), sem gabarito:** três referências independentes; em 128/128 palavras a mediana é confirmada por outra referência dentro de 1 frame (as três concordam entre si em 92%). Render final: 45/45 legendas começando com a fala medida no MP4.
+
+Limite: o método depende de o MP3 dizer exatamente o texto do roteiro. Frase trocada ou cortada quebra o alinhamento (o casamento fica ruim e as referências deixam de concordar — o relatório `agreementWithin1Frame` cai).
