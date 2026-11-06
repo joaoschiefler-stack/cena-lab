@@ -6,7 +6,7 @@
 //    no painel opaco #101018 do primeiro item, frame a frame)
 //
 //   node scripts/verify-render.mjs <id> [--preview]
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { OUT, args, probe } from "./lib.mjs";
@@ -38,6 +38,27 @@ if (episode.audio.src) {
   check("áudio cobre a narração", audioSec >= episode.speechEndFrame / 30 - 1 / 30, `${audioSec.toFixed(3)}s; fala termina em ${(episode.speechEndFrame / 30).toFixed(3)}s`);
 } else {
   check("sem narração → sem exigência de áudio", true, au ? "trilha silenciosa presente" : "sem trilha");
+}
+
+// Sincronia medida no arquivo final: nenhuma legenda começa dentro de um
+// silêncio da trilha de áudio do MP4 (tolerância de 1 frame), e a última
+// fala não é cortada pelo fim do vídeo.
+if (episode.audio.src && au) {
+  const log = spawnSync("ffmpeg", ["-v", "info", "-i", file, "-vn", "-af", "silencedetect=noise=-38dB:d=0.12", "-f", "null", "-"], { encoding: "utf8" }).stderr;
+  const starts = [...log.matchAll(/silence_start: ([\d.]+)/g)].map((m) => Number(m[1]));
+  const ends = [...log.matchAll(/silence_end: ([\d.]+)/g)].map((m) => Number(m[1]));
+  const silences = starts.map((s, i) => [s, ends[i] ?? Infinity]);
+  const tol = 1 / 30;
+  const bad = episode.captions.filter((g) => {
+    const t = g.startFrame / 30;
+    return silences.some(([s, e]) => t > s + tol && t < e - tol);
+  });
+  check("legendas começam com a fala (medido no MP4)", bad.length === 0, `${episode.captions.length - bad.length}/${episode.captions.length} grupos${bad.length ? `; em silêncio: ${bad.slice(0, 5).map((g) => (g.startFrame / 30).toFixed(2) + "s").join(", ")}` : ""}`);
+  // Fim da fala = início do silêncio que vai até o fim do arquivo (se houver).
+  const audioEnd = Number(au.duration);
+  const trailing = silences.find(([, e]) => e >= audioEnd - 0.05);
+  const lastSpeech = trailing ? trailing[0] : audioEnd;
+  check("última fala termina antes do fim do vídeo", lastSpeech <= frames / 30 + tol, `fala até ${Number(lastSpeech).toFixed(3)}s, vídeo ${(frames / 30).toFixed(3)}s`);
 }
 
 // HUD: recorta 6×6 px dentro do painel opaco e mede o brilho em cada frame.
