@@ -24,7 +24,7 @@ Formato interno (`TimedWord`): `{ index, text, start, end, highlight? }` em segu
 ### Voz local (sem custo, sem rede)
 
 `scripts/local-voice.mjs` usa a síntese de voz do Windows (WinRT, voz "Microsoft Daniel" pt-BR):
-- **início de cada palavra:** informado pelo próprio sintetizador (cue de limite de palavra);
+- **início de cada palavra:** informado pelo próprio sintetizador (cue de limite de palavra). **Medido no piloto:** depois de uma pausa, o cue vem 30–85 ms antes do som (até 2,5 frames). O script corrige: se o início cai dentro de um silêncio medido no WAV, ele passa para o fim desse silêncio (22 de 128 palavras no piloto). Sem essa correção, o verificador do MP4 acusou 7 de 44 grupos de legenda começando no silêncio;
 - **fim de cada palavra:** o Windows não informa (duração 0 nos cues). O script usa o menor entre o início da palavra seguinte e o começo de um silêncio **medido no WAV** (`ffmpeg silencedetect`, −38 dB, 80 ms). O método fica gravado no JSON (`endMethod`).
 
 Qualidade: voz sintética de 16 kHz, entonação neutra — serve para validar o pipeline, **não** tem o tom sarcástico que o formato pede. Para publicar, use uma voz melhor (ElevenLabs ou gravação própria) + timestamps.

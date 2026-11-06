@@ -35,11 +35,11 @@ function Side({ side, opt, color, ep, t }: { side: "a" | "b"; opt: VoteOption; c
           />
         </g>
       </svg>
-      <div style={{ position: "absolute", left: cx - w / 2 - 4, top: 588, width: 122, height: 122, borderRadius: 61, background: "#FFFFFF", border: "7px solid #000", display: "flex", alignItems: "center", justifyContent: "center", transform: `scale(${badge * (1 + 0.08 * glow)})`, boxShadow: `0 0 ${36 * glow}px #FFFFFF` }}>
+      <div style={{ position: "absolute", left: cx - w / 2 - 4, top: 588, width: 122, height: 122, borderRadius: 61, background: "#FFFFFF", border: "7px solid #000", display: "flex", alignItems: "center", justifyContent: "center", transform: `scale(${badge * (1 + 0.08 * glow)})`, boxShadow: `0 0 0 ${Math.round(10 * glow)}px rgba(255,255,255,0.85)` }}>
         <span style={{ fontFamily: FONT_DISPLAY, fontSize: 96, color, lineHeight: 1, WebkitTextStroke: "5px #000", paintOrder: "stroke fill" }}>{side.toUpperCase()}</span>
       </div>
-      <div style={{ position: "absolute", left: cx - w / 2, width: w, top: 1124, opacity: label, transform: `translateY(${(1 - label) * 30}px)`, textAlign: "center" }}>
-        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 48, lineHeight: 1.04, color: "#FFFFFF", textTransform: "uppercase", WebkitTextStroke: "9px #000", paintOrder: "stroke fill", minHeight: 150, display: "flex", alignItems: "center", justifyContent: "center" }}>{opt.label}</div>
+      <div style={{ position: "absolute", left: cx - w / 2, width: w, top: 1124, transform: `translateY(${Math.round((1 - label) * 420)}px)`, textAlign: "center" }}>
+        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 48, lineHeight: 1.04, color: "#FFFFFF", textTransform: "uppercase", WebkitTextStroke: "9px #000", paintOrder: "stroke fill", minHeight: 104, display: "flex", alignItems: "center", justifyContent: "center" }}>{opt.label}</div>
         <div style={{ marginTop: 6, display: "inline-block", background: "rgba(0,0,0,0.78)", borderRadius: 16, padding: "6px 14px", fontFamily: FONT_BODY, fontWeight: 900, fontSize: 30, color: "#FFFFFF", lineHeight: 1.15 }}>→ {opt.consequence}</div>
       </div>
     </>

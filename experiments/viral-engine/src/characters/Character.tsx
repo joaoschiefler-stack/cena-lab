@@ -150,7 +150,7 @@ function Mouth({ kind, w, skin }: { kind: ExpressionDef["mouth"]; w: number; ski
   void skin;
 }
 
-function Face({ d, expr, look, blink, t, skin, glasses, seed }: { d: ModelDims; expr: ExpressionDef; look: Vec; blink: boolean; t: number; skin: string; glasses: boolean; seed: number }) {
+function Face({ d, expr, look, blink, t, skin, glasses, uid }: { d: ModelDims; expr: ExpressionDef; look: Vec; blink: boolean; t: number; skin: string; glasses: boolean; uid: string }) {
   const rx = d.headRx, ry = d.headRy;
   const ex = rx * 0.36, ey = ry * 0.02, ew = rx * 0.25, eh = ry * 0.29;
   const lid = blink ? 1 : expr.lid;
@@ -159,7 +159,7 @@ function Face({ d, expr, look, blink, t, skin, glasses, seed }: { d: ModelDims; 
   const pr = rx * 0.115 * expr.pupil;
   const eye = (sx: number) => {
     const cx = sx * ex;
-    const clipId = `eye-${seed}-${sx}`;
+    const clipId = `eye-${uid}-${sx < 0 ? "l" : "r"}`;
     return (
       <g key={sx}>
         <clipPath id={clipId}><ellipse cx={cx} cy={ey} rx={ew} ry={eh} /></clipPath>
@@ -206,6 +206,8 @@ function Face({ d, expr, look, blink, t, skin, glasses, seed }: { d: ModelDims; 
 export const Character: React.FC<Props> = ({ member, state, x, floorY, scale = 1 }) => {
   const d = MODELS[member.model];
   const seed = seedOf(member.id);
+  // Id único por instância: o mesmo personagem pode aparecer duas vezes no quadro (votação A/B).
+  const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const s = state;
 
   // Pose (com transição) e ciclo de locomoção.
@@ -318,7 +320,7 @@ export const Character: React.FC<Props> = ({ member, state, x, floorY, scale = 1
         {[-1, 1].map((sx) => <ellipse key={sx} cx={sx * d.headRx * 0.98} cy={d.headRy * 0.08} rx={d.headRx * 0.16} ry={d.headRy * 0.2} fill={member.skin} stroke={OUTLINE} strokeWidth={OW} />)}
         <ellipse cx={0} cy={0} rx={d.headRx} ry={d.headRy} fill={member.skin} stroke={OUTLINE} strokeWidth={OW} />
         <ellipse cx={d.headRx * 0.45} cy={d.headRy * 0.35} rx={d.headRx * 0.5} ry={d.headRy * 0.55} fill={skinShade} opacity={0.22} />
-        <Face d={d} expr={expr} look={[lookX, look[1]]} blink={blink} t={t} skin={member.skin} glasses={acc === "glasses"} seed={seed} />
+        <Face d={d} expr={expr} look={[lookX, look[1]]} blink={blink} t={t} skin={member.skin} glasses={acc === "glasses"} uid={uid} />
         <Hair style={member.hairStyle} color={member.hair} rx={d.headRx} ry={d.headRy} layer="front" />
         {acc === "cap" && (
           <g>

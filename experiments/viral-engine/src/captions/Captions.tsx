@@ -11,7 +11,7 @@ import { FONT_DISPLAY } from "../render/fonts.ts";
  */
 
 /** Centro vertical da legenda em cada posição (dentro da área segura). */
-export const CAPTION_Y: Record<CaptionSlot | "vote", number> = { upper: 560, center: 1010, lower: 1300, vote: 1392 };
+export const CAPTION_Y: Record<CaptionSlot | "vote", number> = { upper: 560, center: 1010, lower: 1320, vote: 1392 };
 
 export const Captions: React.FC<{ ep: ResolvedEpisode; frame: number; slot: CaptionSlot | "vote" }> = ({ ep, frame, slot }) => {
   const st = captionStateAt(ep.captions, frame);
@@ -32,7 +32,7 @@ export const Captions: React.FC<{ ep: ResolvedEpisode; frame: number; slot: Capt
         flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
-        columnGap: compact ? 16 : 22,
+        columnGap: compact ? 24 : 36,
         rowGap: 0,
         fontFamily: FONT_DISPLAY,
         fontSize: size,
@@ -57,7 +57,7 @@ export const Captions: React.FC<{ ep: ResolvedEpisode; frame: number; slot: Capt
               WebkitTextStroke: `${compact ? 10 : 14}px #000000`,
               paintOrder: "stroke fill",
               textShadow: "0 8px 0 rgba(0,0,0,0.55)",
-              transform: `scale(${(0.6 + 0.4 * pop) * (active ? 1.1 : 1)}) rotate(${active && w.highlight ? -3 : 0}deg)`,
+              transform: `scale(${(0.6 + 0.4 * pop) * (active ? 1.06 : 1)}) rotate(${active && w.highlight ? -3 : 0}deg)`,
             }}
           >
             {w.text}

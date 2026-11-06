@@ -66,6 +66,8 @@ function LocationTag({ ep, bi, frame }: { ep: ResolvedEpisode; bi: number; frame
   const beat = ep.beats[bi];
   const prev = ep.beats[bi - 1];
   if (prev && prev.set === beat.set) return null;
+  // A notificação usa o mesmo espaço: ela tem prioridade.
+  if (beat.overlays.some((o) => o.kind === "notification" && frame >= o.startFrame && frame < o.endFrame)) return null;
   const age = frame - beat.startFrame;
   const len = 50;
   if (age >= len) return null;

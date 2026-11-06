@@ -56,7 +56,7 @@ Alternativa considerada: SVG → Playwright (screenshot por frame) → ffmpeg. F
 ## Garantias verificadas
 
 - Mesmo código para episódios diferentes (dois exemplos em `examples/`, testes em `tests/engine.test.ts`).
-- Repetibilidade: duas renderizações do mesmo trecho → hashes de frame idênticos (`scripts/repeatability.mjs`).
+- Repetibilidade: o estado de cada frame é determinístico (testado). Na renderização, os trechos de história testados saíram idênticos bit a bit (121 frames, exemplo B). Na tela de votação, o Chrome produz diferenças de no máximo 1/255 em poucos pixels em ~9% dos frames crus (PSNR 97–99 dB, invisível); o H.264 propaga isso até o próximo quadro-chave, então o MP4 não é bit a bit idêntico nesse trecho (`scripts/repeatability.mjs`).
 - HUD em 100% dos frames do intervalo ativo: teste do estado + amostragem de pixels de todos os frames do MP4 (`scripts/verify-render.mjs`).
 - Personagem consistente: cores da ficha presentes em todas as 16 poses e ausentes as de outro personagem; cabeça com o mesmo tamanho em todas as poses (`tests/engine.test.ts`).
 
@@ -65,4 +65,4 @@ Alternativa considerada: SVG → Playwright (screenshot por frame) → ffmpeg. F
 - Vocabulário visual fechado (5 cenários, 2 modelos de corpo). Uma história na cozinha ou no ônibus precisa de componente novo.
 - Personagens vistos de frente; a caminhada lateral é estilizada.
 - Sem efeitos sonoros nem trilha (o motor só toca a narração).
-- Tempo de render medido nesta máquina: ~1 min 40 s para 29 s de vídeo em 1080×1920.
+- Tempo de render medido nesta máquina: ~1 min 40 s para 29 s de vídeo e 3 min 13 s para o piloto de 54,7 s, em 1080×1920.

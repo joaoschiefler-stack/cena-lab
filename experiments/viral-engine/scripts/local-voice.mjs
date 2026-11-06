@@ -30,14 +30,26 @@ console.log(ps.stdout.trim());
 const raw = JSON.parse(readFileSync(`${base}.words.json`, "utf8").replace(/^﻿/, ""));
 const duration = probeDuration(`${base}.wav`);
 const log = spawnSync("ffmpeg", ["-v", "info", "-i", `${base}.wav`, "-af", "silencedetect=noise=-38dB:d=0.08", "-f", "null", "-"], { encoding: "utf8" }).stderr;
-const silences = [...log.matchAll(/silence_start: ([\d.]+)/g)].map((m) => Number(m[1]));
+const starts = [...log.matchAll(/silence_start: ([\d.]+)/g)].map((m) => Number(m[1]));
+const ends = [...log.matchAll(/silence_end: ([\d.]+)/g)].map((m) => Number(m[1]));
+const silences = starts.map((s, i) => [s, ends[i] ?? duration]);
 
+// O cue de início do Windows vem 30–85 ms ANTES do som depois de uma pausa
+// (medido no piloto). Se o início cai dentro de um silêncio medido, ele vai
+// para o fim desse silêncio — o instante em que a palavra começa a soar.
+const onset = (t) => {
+  const s = silences.find(([a, b]) => t >= a - 0.01 && t < b);
+  return s ? s[1] : t;
+};
 const words = raw.words.map((w, i) => {
-  const next = raw.words[i + 1]?.start ?? duration;
-  const silence = silences.find((s) => s > w.start + 0.05 && s < next);
+  const start = onset(w.start);
+  const nextRaw = raw.words[i + 1]?.start ?? duration;
+  const next = raw.words[i + 1] ? Math.max(onset(nextRaw), start) : duration;
+  const silence = starts.find((s) => s > start + 0.05 && s < next);
   const end = Math.min(next, silence ?? next, duration);
-  return { text: w.text, start: w.start, end: Math.round(Math.max(end, w.start + 0.04) * 1000) / 1000 };
+  return { text: w.text, start: Math.round(start * 1000) / 1000, end: Math.round(Math.max(end, start + 0.04) * 1000) / 1000 };
 });
-const out = { source: "local-tts", voice: raw.voice, rate: raw.rate, endMethod: "min(próxima palavra, silêncio medido)", audio: { duration }, words };
+const moved = words.filter((w, i) => w.start !== raw.words[i].start).length;
+const out = { source: "local-tts", voice: raw.voice, rate: raw.rate, startMethod: "cue do sintetizador; se cair em silêncio medido, fim do silêncio", endMethod: "min(próxima palavra, silêncio medido)", startsMovedToOnset: moved, audio: { duration }, words };
 writeFileSync(`${base}.timestamps.json`, JSON.stringify(out, null, 2));
 console.log(`${words.length} palavras, ${duration.toFixed(2)}s, ${silences.length} pausas medidas → ${path.relative(ROOT, `${base}.timestamps.json`)}`);

@@ -31,7 +31,7 @@ function Phone({ o, frame, accent }: { o: ResolvedOverlay; frame: number; accent
   const y = (1 - ease.spring(enter)) * 1300 + (1 - exit) * 1300;
   const msgs = o.messages ?? [];
   return (
-    <div style={{ position: "absolute", left: o.slot === "left" ? 70 : o.slot === "right" ? 400 : 230, top: 440, width: 540, height: 1000, transform: `translateY(${y}px) rotate(${(1 - exit) * 8}deg)` }}>
+    <div style={{ position: "absolute", left: o.slot === "left" ? 70 : o.slot === "right" ? 400 : 230, top: 420, width: 520, height: 810, transform: `translateY(${y}px) rotate(${(1 - exit) * 8}deg)` }}>
       <div style={{ position: "absolute", inset: 0, borderRadius: 70, background: "#16161E", border: "8px solid #000", boxShadow: "0 30px 0 rgba(0,0,0,0.35)" }} />
       <div style={{ position: "absolute", left: 26, top: 26, right: 26, bottom: 26, borderRadius: 50, background: "#F1EEF8", overflow: "hidden", display: "flex", flexDirection: "column" }}>
         <div style={{ background: "#5B3FD6", padding: "54px 28px 22px", display: "flex", alignItems: "center", gap: 18 }}>

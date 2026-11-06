@@ -1,0 +1,116 @@
+{
+  "schema": "cena-lab.episode/1",
+  "meta": {
+    "id": "caio-e-o-audio-proibido-ep1",
+    "title": "Caio e o Áudio Proibido — Ep. 1",
+    "language": "pt-BR",
+    "format": "comedia_seriada_v1",
+    "seriesId": "caio-e-o-audio-proibido",
+    "seriesTitle": "Caio e o Áudio Proibido",
+    "episode": 1,
+    "premise": "Um estudante mandou por engano um áudio imitando o diretor no grupo da escola e agora precisa impedir que a gravação chegue à coordenação.",
+    "goal": "Impedir que a gravação chegue à coordenação antes do fim da semana (prazo: 5 dias)",
+    "targetDuration": 60
+  },
+  "style": {
+    "visual": "cartoon2d",
+    "narratorTone": "sarcastico"
+  },
+  "theme": {
+    "accent": "#FFC400",
+    "danger": "#FF3B30",
+    "optionA": "#FF2E63",
+    "optionB": "#00B8FF",
+    "captionHighlight": "#FFC400"
+  },
+  "cast": [
+    {
+      "id": "caio",
+      "name": "Caio",
+      "model": "teen",
+      "skin": "#8D5A3B",
+      "hair": "#1E120C",
+      "hairStyle": "spiky",
+      "top": "#FF4D4D",
+      "bottom": "#1E2A44",
+      "accessory": "headphones",
+      "accent": "#FFC400",
+      "personality": "17 anos, sempre tenta resolver problemas improvisando desculpas ruins"
+    }
+  ],
+  "sets": [
+    {
+      "id": "quarto",
+      "kind": "bedroom",
+      "label": "QUARTO"
+    },
+    {
+      "id": "corredor",
+      "kind": "hallway",
+      "label": "CORREDOR"
+    },
+    {
+      "id": "sala-de-aula",
+      "kind": "classroom",
+      "label": "SALA DE AULA"
+    },
+    {
+      "id": "coordenacao",
+      "kind": "office",
+      "label": "COORDENAÇÃO"
+    },
+    {
+      "id": "patio",
+      "kind": "schoolyard",
+      "label": "PÁTIO"
+    }
+  ],
+  "hud": {
+    "enabled": true,
+    "items": [
+      {
+        "id": "prazo",
+        "kind": "countdown",
+        "label": "PRAZO",
+        "value": 5,
+        "max": 5,
+        "text": "DIAS"
+      },
+      {
+        "id": "risco",
+        "kind": "meter",
+        "label": "RISCO",
+        "value": 0.2
+      }
+    ]
+  },
+  "script": {
+    "lines": []
+  },
+  "beats": [],
+  "vote": {
+    "from": {
+      "line": "L01"
+    },
+    "duration": 11,
+    "question": "",
+    "cta": "Comenta A ou B",
+    "actor": "caio",
+    "a": {
+      "label": "",
+      "consequence": "",
+      "pose": "run",
+      "expression": "determined"
+    },
+    "b": {
+      "label": "",
+      "consequence": "",
+      "pose": "sneak",
+      "expression": "nervous"
+    }
+  },
+  "continuity": {
+    "previous": null,
+    "facts": []
+  }
+}

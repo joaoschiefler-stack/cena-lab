@@ -1,0 +1,195 @@
+{
+  "schema": "cena-lab.episode/1",
+  "meta": {
+    "id": "caio-e-o-audio-proibido-ep1",
+    "title": "Caio e o Áudio Proibido — Ep. 1",
+    "language": "pt-BR",
+    "format": "comedia_seriada_v1",
+    "seriesId": "caio-e-o-audio-proibido",
+    "seriesTitle": "Caio e o Áudio Proibido",
+    "episode": 1,
+    "premise": "Um estudante mandou por engano um áudio imitando o diretor no grupo da escola e agora precisa impedir que a gravação chegue à coordenação.",
+    "goal": "Impedir que a gravação chegue à coordenação antes do fim da semana (prazo: 5 dias)",
+    "targetDuration": 60
+  },
+  "style": { "visual": "cartoon2d", "narratorTone": "sarcastico" },
+  "theme": { "accent": "#FFC400", "danger": "#FF3B30", "optionA": "#FF2E63", "optionB": "#00B8FF", "captionHighlight": "#FFC400" },
+  "cast": [
+    { "id": "caio", "name": "Caio", "model": "teen", "skin": "#8D5A3B", "hair": "#1E120C", "hairStyle": "spiky", "top": "#FF4D4D", "bottom": "#1E2A44", "accessory": "headphones", "accent": "#FFC400", "personality": "17 anos, sempre tenta resolver problemas improvisando desculpas ruins" },
+    { "id": "lia", "name": "Lia", "model": "teen", "skin": "#E0AC69", "hair": "#3B2416", "hairStyle": "curly", "top": "#13B07A", "bottom": "#2D2D44", "accessory": "glasses", "accent": "#7B4DFF", "personality": "melhor amiga, prática, cobra caro" },
+    { "id": "marta", "name": "Dona Marta", "model": "adult", "skin": "#C68A5E", "hair": "#2A1A12", "hairStyle": "bun", "top": "#5A3E8C", "bottom": "#23283A", "accessory": "lanyard", "accent": "#FF3B30", "personality": "coordenadora, calma, lê tudo" }
+  ],
+  "sets": [
+    { "id": "quarto", "kind": "bedroom", "label": "QUARTO" },
+    { "id": "corredor", "kind": "hallway", "label": "CORREDOR" },
+    { "id": "sala-de-aula", "kind": "classroom", "label": "SALA DE AULA" },
+    { "id": "coordenacao", "kind": "office", "label": "COORDENAÇÃO" },
+    { "id": "patio", "kind": "schoolyard", "label": "PÁTIO" }
+  ],
+  "hud": {
+    "enabled": true,
+    "items": [
+      { "id": "prazo", "kind": "countdown", "label": "PRAZO", "value": 5, "max": 5, "text": "DIAS" },
+      { "id": "risco", "kind": "meter", "label": "RISCO", "value": 0.2 }
+    ]
+  },
+  "script": {
+    "lines": [
+      { "id": "L01", "text": "O Caio acabou de mandar um áudio no grupo da escola.", "emphasis": ["áudio"] },
+      { "id": "L02", "text": "Um áudio imitando o diretor. Com sotaque e tudo.", "emphasis": ["diretor"] },
+      { "id": "L03", "text": "Detalhe: o grupo tem cento e vinte alunos.", "emphasis": ["vinte"] },
+      { "id": "L04", "text": "E a coordenadora lê esse grupo toda sexta.", "emphasis": ["coordenadora"] },
+      { "id": "L05", "text": "Hoje é segunda. O Caio tem cinco dias para sumir com esse áudio.", "emphasis": ["cinco"] },
+      { "id": "L06", "text": "Plano A: pedir para todo mundo apagar.", "emphasis": ["apagar"] },
+      { "id": "L07", "text": "Resultado: o áudio virou figurinha.", "emphasis": ["figurinha"] },
+      { "id": "L08", "text": "Plano B: convencer a Lia a dizer que a voz era dela.", "emphasis": ["Lia"] },
+      { "id": "L09", "text": "A Lia cobrou três meses de lanche.", "emphasis": ["lanche"] },
+      { "id": "L10", "text": "E ela imita o diretor ainda pior.", "emphasis": ["pior"] },
+      { "id": "L11", "text": "Aí o diretor de verdade respondeu no grupo.", "emphasis": ["verdade"] },
+      { "id": "L12", "text": "Ele amou. E quer o comediante apresentando a festa de sexta.", "emphasis": ["festa"] },
+      { "id": "L13", "text": "A festa onde a coordenadora vai estar.", "emphasis": ["coordenadora"] },
+      { "id": "L14", "text": "O Caio assume o áudio ou joga a culpa na Lia? Comenta A ou B.", "emphasis": ["Lia"] }
+    ]
+  },
+  "beats": [
+    {
+      "id": "B01", "from": { "line": "L01" }, "set": "quarto", "shot": { "type": "wide" }, "captions": "lower",
+      "actors": [{ "id": "caio", "x": 0.18, "facing": "right", "pose": "phone", "expression": "smug", "look": "phone" }],
+      "overlays": [{
+        "id": "grupo", "kind": "phone", "slot": "right", "from": { "line": "L01", "word": 4 }, "title": "3º ANO B — OFICIAL", "text": "120 participantes",
+        "messages": [
+          { "from": "Caio", "text": "0:14", "audio": true, "mine": true },
+          { "from": "Pedro", "text": "KKKKKKKKKKK" },
+          { "from": "Bia", "text": "é o diretor????" }
+        ]
+      }],
+      "events": [
+        { "at": { "line": "L02", "word": 2 }, "actor": "caio", "expression": "nervous", "look": "camera" },
+        { "at": { "line": "L02", "word": 4 }, "actor": "caio", "pose": "panic", "expression": "panic" },
+        { "at": { "line": "L02", "word": 4 }, "shake": 0.5 }
+      ],
+      "purpose": "Gancho: o erro já aconteceu e está no grupo."
+    },
+    {
+      "id": "B02", "from": { "line": "L03" }, "set": "quarto", "shot": { "type": "close", "subject": "caio" },
+      "actors": [{ "id": "caio", "x": 0.18, "facing": "right", "pose": "panic", "expression": "panic", "look": "camera" }],
+      "overlays": [{ "id": "alunos", "kind": "tag", "slot": "top", "from": { "line": "L03", "word": 4 }, "text": "120 ALUNOS" }],
+      "events": [
+        { "at": { "line": "L03", "word": 4 }, "hud": { "item": "risco", "value": 0.4 } },
+        { "at": { "line": "L03", "word": 6 }, "shake": 0.35 }
+      ],
+      "purpose": "Tamanho do problema."
+    },
+    {
+      "id": "B03", "from": { "line": "L04" }, "set": "coordenacao", "shot": { "type": "wide" }, "transition": "smash",
+      "actors": [{ "id": "marta", "x": 0.6, "facing": "left", "pose": "arms_crossed", "expression": "deadpan", "look": "left" }],
+      "overlays": [{ "id": "olhos", "kind": "sticker", "slot": "left", "from": { "line": "L04", "word": 2 }, "sticker": "eyes" }],
+      "events": [{ "at": { "line": "L04", "word": 7 }, "actor": "marta", "look": "camera", "expression": "sly" }],
+      "purpose": "Ameaça com data: a coordenadora lê o grupo na sexta."
+    },
+    {
+      "id": "B04", "from": { "line": "L05" }, "set": "corredor", "shot": { "type": "medium", "subject": "caio" },
+      "actors": [{ "id": "caio", "x": 0.5, "facing": "right", "pose": "idle", "expression": "nervous", "look": "camera" }],
+      "events": [
+        { "at": { "line": "L05", "word": 6 }, "actor": "caio", "pose": "point", "expression": "determined", "look": "right" },
+        { "at": { "line": "L05", "word": 6 }, "hud": { "item": "prazo", "value": 5 } }
+      ],
+      "purpose": "Objetivo e prazo explícitos."
+    },
+    {
+      "id": "B05", "from": { "line": "L06" }, "set": "sala-de-aula", "shot": { "type": "wide" },
+      "actors": [
+        { "id": "caio", "x": 0.28, "facing": "right", "pose": "talk", "expression": "determined", "look": "camera" },
+        { "id": "lia", "x": 0.78, "facing": "left", "pose": "arms_crossed", "expression": "deadpan", "look": "left" }
+      ],
+      "events": [{ "at": { "line": "L06", "word": 6 }, "actor": "lia", "pose": "shrug" }],
+      "purpose": "Plano A."
+    },
+    {
+      "id": "B06", "from": { "line": "L07" }, "set": "sala-de-aula", "shot": { "type": "medium", "subject": "caio" }, "transition": "flash",
+      "actors": [
+        { "id": "caio", "x": 0.28, "facing": "right", "pose": "talk", "expression": "happy", "look": "camera" },
+        { "id": "lia", "x": 0.78, "facing": "left", "pose": "shrug", "expression": "deadpan", "look": "left" }
+      ],
+      "overlays": [{ "id": "figurinha", "kind": "stamp", "slot": "bottom", "from": { "line": "L07", "word": 3 }, "text": "FIGURINHA!" }],
+      "events": [
+        { "at": { "line": "L07", "word": 3 }, "actor": "caio", "pose": "shocked", "expression": "shocked" },
+        { "at": { "line": "L07", "word": 4 }, "shake": 0.6, "hud": { "item": "risco", "value": 0.6 } }
+      ],
+      "purpose": "Consequência: o plano A espalha o áudio (gag)."
+    },
+    {
+      "id": "B07", "from": { "line": "L08" }, "set": "corredor", "shot": { "type": "wide" }, "transition": "whip",
+      "actors": [
+        { "id": "caio", "x": 0.3, "facing": "right", "pose": "talk", "expression": "nervous", "look": "right" },
+        { "id": "lia", "x": 0.72, "facing": "left", "pose": "arms_crossed", "expression": "deadpan", "look": "left" }
+      ],
+      "events": [{ "at": { "line": "L08", "word": 4 }, "actor": "lia", "look": "camera", "expression": "sly" }],
+      "purpose": "Plano B."
+    },
+    {
+      "id": "B08", "from": { "line": "L09" }, "set": "corredor", "shot": { "type": "close", "subject": "lia" },
+      "actors": [
+        { "id": "caio", "x": 0.3, "facing": "right", "pose": "talk", "expression": "nervous", "look": "right" },
+        { "id": "lia", "x": 0.72, "facing": "left", "pose": "arms_crossed", "expression": "smug", "look": "left" }
+      ],
+      "overlays": [{ "id": "lanche", "kind": "tag", "slot": "top", "from": { "line": "L09", "word": 3 }, "text": "3 MESES DE LANCHE" }],
+      "purpose": "Custo do plano B (gag)."
+    },
+    {
+      "id": "B09", "from": { "line": "L10" }, "set": "corredor", "shot": { "type": "wide" },
+      "actors": [
+        { "id": "caio", "x": 0.3, "facing": "right", "pose": "idle", "expression": "nervous", "look": "right" },
+        { "id": "lia", "x": 0.72, "facing": "left", "pose": "talk", "expression": "smug", "look": "camera" }
+      ],
+      "overlays": [{ "id": "nao", "kind": "sticker", "slot": "top", "from": { "line": "L10", "word": 6 }, "sticker": "cross" }],
+      "events": [{ "at": { "line": "L10", "word": 6 }, "actor": "caio", "pose": "facepalm", "expression": "deadpan" }],
+      "purpose": "Plano B falha na hora."
+    },
+    {
+      "id": "B10", "from": { "line": "L11" }, "set": "patio", "shot": { "type": "wide" }, "transition": "whip",
+      "actors": [{ "id": "caio", "x": 0.5, "facing": "right", "pose": "phone", "expression": "nervous", "look": "phone" }],
+      "overlays": [{ "id": "diretor", "kind": "notification", "slot": "top", "from": { "line": "L11", "word": 5 }, "title": "Diretor Valdir", "text": "Quem é o comediante desse áudio?", "sticker": "eyes" }],
+      "events": [
+        { "at": { "line": "L11", "word": 5 }, "actor": "caio", "pose": "shocked", "expression": "shocked" },
+        { "at": { "line": "L11", "word": 5 }, "shake": 0.5, "hud": { "item": "risco", "value": 0.85 } }
+      ],
+      "purpose": "Reviravolta: o diretor de verdade viu."
+    },
+    {
+      "id": "B11", "from": { "line": "L12" }, "set": "patio", "shot": { "type": "close", "subject": "caio" },
+      "actors": [{ "id": "caio", "x": 0.5, "facing": "right", "pose": "shocked", "expression": "shocked", "look": "camera" }],
+      "overlays": [{ "id": "festa", "kind": "tag", "slot": "top", "from": { "line": "L12", "word": 8 }, "text": "FESTA DE SEXTA" }],
+      "events": [
+        { "at": { "line": "L12", "word": 1 }, "actor": "caio", "pose": "cheer", "expression": "happy" },
+        { "at": { "line": "L12", "word": 8 }, "actor": "caio", "pose": "panic", "expression": "nervous" }
+      ],
+      "purpose": "Alívio falso: ele gostou... e quer o comediante no palco."
+    },
+    {
+      "id": "B12", "from": { "line": "L13" }, "set": "coordenacao", "shot": { "type": "medium", "subject": "marta" }, "transition": "smash",
+      "actors": [{ "id": "marta", "x": 0.6, "facing": "left", "pose": "arms_crossed", "expression": "deadpan", "look": "left" }],
+      "overlays": [{ "id": "caveira", "kind": "sticker", "slot": "left", "from": { "line": "L13", "word": 4 }, "sticker": "skull" }],
+      "events": [
+        { "at": { "line": "L13", "word": 4 }, "actor": "marta", "expression": "smug", "look": "camera" },
+        { "at": { "line": "L13", "word": 4 }, "shake": 0.5, "hud": { "item": "risco", "value": 1 } }
+      ],
+      "purpose": "O risco no máximo: palco, sexta e coordenadora juntos."
+    }
+  ],
+  "vote": {
+    "from": { "line": "L14" }, "duration": 11, "actor": "caio",
+    "question": "O que o Caio faz?", "cta": "Comenta A ou B",
+    "a": { "label": "Assumir e apresentar a festa", "consequence": "vira estrela, mas a coordenação descobre", "pose": "cheer", "expression": "happy" },
+    "b": { "label": "Jogar a culpa na Lia", "consequence": "se livra hoje, perde a melhor amiga", "pose": "sneak", "expression": "sly" }
+  },
+  "continuity": {
+    "previous": null,
+    "facts": [
+      "O áudio do Caio imitando o diretor está no grupo do 3º ano B, com 120 alunos, e virou figurinha.",
+      "A coordenadora, Dona Marta, lê o grupo toda sexta.",
+      "O diretor Valdir gostou do áudio e quer o comediante apresentando a festa de sexta.",
+      "A Lia cobrou três meses de lanche e imita o diretor pior que o Caio."
+    ]
+  }
+}
