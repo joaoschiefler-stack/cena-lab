@@ -1,0 +1,108 @@
+{
+  "schema": "cena-lab.episode/1",
+  "meta": {
+    "id": "demo-b-bone",
+    "title": "O boné da sorte",
+    "language": "pt-BR",
+    "format": "comedia_seriada_v1",
+    "seriesId": "demo-rafa",
+    "seriesTitle": "Rafa e a final",
+    "episode": 1,
+    "premise": "O Rafa perdeu o boné da sorte um dia antes da final do campeonato.",
+    "goal": "Recuperar o boné antes da final",
+    "targetDuration": 25
+  },
+  "style": { "visual": "cartoon2d", "narratorTone": "ironico" },
+  "theme": { "accent": "#00E0A4", "danger": "#FF4D4D", "optionA": "#FF8A00", "optionB": "#7B61FF", "captionHighlight": "#00E0A4" },
+  "cast": [
+    { "id": "rafa", "name": "Rafa", "model": "teen", "skin": "#F1C27D", "hair": "#C8551B", "hairStyle": "curly", "top": "#FF4D4D", "bottom": "#2D2D44", "accessory": "none", "accent": "#00E0A4", "personality": "supersticioso, dramático, leal" },
+    { "id": "coord", "name": "Dona Célia", "model": "adult", "skin": "#A86B4C", "hair": "#3B2A22", "hairStyle": "bun", "top": "#2E5E8C", "bottom": "#23283A", "accessory": "cap", "accent": "#00E0A4", "personality": "calma, irônica, implacável" }
+  ],
+  "sets": [
+    { "id": "corredor", "kind": "hallway", "label": "CORREDOR" },
+    { "id": "coord", "kind": "office", "label": "COORDENAÇÃO" }
+  ],
+  "hud": {
+    "enabled": true,
+    "items": [
+      { "id": "final", "kind": "countdown", "label": "FINAL EM", "value": 24, "max": 24, "text": "H" },
+      { "id": "pistas", "kind": "progress", "label": "PISTAS", "value": 0, "max": 3 }
+    ]
+  },
+  "script": {
+    "lines": [
+      { "id": "L01", "text": "O Rafa perdeu o boné da sorte um dia antes da final.", "emphasis": ["boné"] },
+      { "id": "L02", "text": "Sem boné, ele não acerta nem a porta do vestiário." },
+      { "id": "L03", "text": "Pista número um: o boné foi visto na coordenação.", "emphasis": ["coordenação"] },
+      { "id": "L04", "text": "Ninguém entra na coordenação por vontade própria." },
+      { "id": "L05", "text": "E a coordenadora estava usando o boné.", "emphasis": ["usando"] },
+      { "id": "L06", "text": "Ela só devolve depois da prova de química.", "emphasis": ["química"] },
+      { "id": "L07", "text": "Rafa, estuda química ou pega o boné escondido?" }
+    ]
+  },
+  "beats": [
+    {
+      "id": "B01", "from": { "line": "L01" }, "set": "corredor", "shot": { "type": "close", "subject": "rafa" },
+      "actors": [{ "id": "rafa", "x": 0.5, "pose": "panic", "expression": "panic", "look": "up" }],
+      "events": [{ "at": { "line": "L01", "word": 3 }, "shake": 0.5 }],
+      "purpose": "Gancho: perda e prazo."
+    },
+    {
+      "id": "B02", "from": { "line": "L02" }, "set": "corredor", "shot": { "type": "wide" },
+      "actors": [{ "id": "rafa", "x": 0.15, "pose": "walk", "expression": "determined" }],
+      "events": [
+        { "at": { "line": "L02", "word": 1 }, "actor": "rafa", "x": 0.85 },
+        { "at": { "line": "L02", "word": 7 }, "actor": "rafa", "pose": "slump", "expression": "sad" },
+        { "at": { "line": "L02", "word": 7 }, "shake": 0.8 }
+      ],
+      "overlays": [{ "id": "bonk", "kind": "sticker", "slot": "right", "from": { "line": "L02", "word": 7 }, "sticker": "cross" }],
+      "purpose": "Gag: sem o boné, tudo dá errado."
+    },
+    {
+      "id": "B03", "from": { "line": "L03" }, "set": "corredor", "shot": { "type": "medium", "subject": "rafa" },
+      "actors": [{ "id": "rafa", "x": 0.5, "pose": "phone", "expression": "nervous", "look": "phone" }],
+      "overlays": [{ "id": "notif", "kind": "notification", "slot": "top", "from": { "line": "L03", "word": 0 }, "title": "Grupo do Time", "text": "vi teu boné na coordenação", "sticker": "eyes" }],
+      "events": [{ "at": { "line": "L03", "word": 8 }, "hud": { "item": "pistas", "value": 1 } }],
+      "purpose": "Pista concreta."
+    },
+    {
+      "id": "B04", "from": { "line": "L04" }, "set": "coord", "shot": { "type": "wide" }, "transition": "smash",
+      "actors": [
+        { "id": "rafa", "x": 0.15, "pose": "sneak", "expression": "nervous", "facing": "right" },
+        { "id": "coord", "x": 0.75, "pose": "arms_crossed", "expression": "deadpan", "facing": "left", "look": "left" }
+      ],
+      "events": [{ "at": { "line": "L04", "word": 3 }, "actor": "rafa", "x": 0.35 }],
+      "purpose": "Entrada em território perigoso."
+    },
+    {
+      "id": "B05", "from": { "line": "L05" }, "set": "coord", "shot": { "type": "close", "subject": "coord" },
+      "actors": [
+        { "id": "rafa", "x": 0.35, "pose": "shocked", "expression": "shocked", "facing": "right" },
+        { "id": "coord", "x": 0.75, "pose": "arms_crossed", "expression": "smug", "facing": "left", "look": "left" }
+      ],
+      "events": [
+        { "at": { "line": "L05", "word": 4 }, "shake": 0.6, "hud": { "item": "pistas", "value": 2 } },
+        { "at": { "line": "L05", "word": 4 }, "shot": { "type": "close", "subject": "rafa" } }
+      ],
+      "overlays": [{ "id": "olho", "kind": "tag", "slot": "top", "from": { "line": "L05", "word": 2 }, "text": "O BONÉ!" }],
+      "purpose": "Revelação com gag visual: o boné está na cabeça dela."
+    },
+    {
+      "id": "B06", "from": { "line": "L06" }, "set": "coord", "shot": { "type": "medium", "subject": "coord" },
+      "actors": [
+        { "id": "rafa", "x": 0.3, "pose": "slump", "expression": "sad", "facing": "right" },
+        { "id": "coord", "x": 0.72, "pose": "talk", "expression": "smug", "facing": "left", "look": "left" }
+      ],
+      "events": [{ "at": { "line": "L06", "word": 6 }, "hud": { "item": "final", "value": 20 } }],
+      "overlays": [{ "id": "quimica", "kind": "stamp", "slot": "center", "from": { "line": "L06", "word": 6 }, "text": "QUÍMICA" }],
+      "purpose": "Condição com custo."
+    }
+  ],
+  "vote": {
+    "from": { "line": "L07" }, "duration": 8, "actor": "rafa",
+    "question": "O que o Rafa faz?", "cta": "Comenta A ou B",
+    "a": { "label": "Estudar química a noite toda", "consequence": "recupera o boné, chega exausto", "pose": "think", "expression": "determined" },
+    "b": { "label": "Pegar o boné escondido", "consequence": "joga com sorte, arrisca suspensão", "pose": "sneak", "expression": "sly" }
+  },
+  "continuity": { "previous": null, "facts": ["A Dona Célia guardou o boné verde do Rafa.", "A final é amanhã."] }
+}

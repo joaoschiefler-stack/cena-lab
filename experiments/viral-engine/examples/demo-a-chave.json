@@ -1,0 +1,113 @@
+{
+  "schema": "cena-lab.episode/1",
+  "meta": {
+    "id": "demo-a-chave",
+    "title": "A chave da Ana",
+    "language": "pt-BR",
+    "format": "comedia_seriada_v1",
+    "seriesId": "demo-ana",
+    "seriesTitle": "Ana contra o relógio",
+    "episode": 1,
+    "premise": "A Ana perdeu a chave de casa e o ônibus da excursão sai em dez minutos.",
+    "goal": "Achar a chave antes do ônibus sair",
+    "targetDuration": 25
+  },
+  "style": { "visual": "cartoon2d", "narratorTone": "sarcastico" },
+  "theme": { "accent": "#FFD400", "danger": "#FF3B30", "optionA": "#FF2E63", "optionB": "#00B8FF", "captionHighlight": "#FFD400" },
+  "cast": [
+    { "id": "ana", "name": "Ana", "model": "teen", "skin": "#8D5A3B", "hair": "#1E120C", "hairStyle": "bun", "top": "#7B4DFF", "bottom": "#24304A", "accessory": "backpack", "accent": "#FFD400", "personality": "otimista, distraída, teimosa" }
+  ],
+  "sets": [
+    { "id": "quarto", "kind": "bedroom", "label": "QUARTO DA ANA" },
+    { "id": "patio", "kind": "schoolyard", "label": "PÁTIO DO VIZINHO" }
+  ],
+  "hud": {
+    "enabled": true,
+    "items": [
+      { "id": "prazo", "kind": "countdown", "label": "ÔNIBUS SAI EM", "value": 10, "max": 10, "text": "MIN" },
+      { "id": "risco", "kind": "meter", "label": "RISCO", "value": 0.3 }
+    ]
+  },
+  "script": {
+    "lines": [
+      { "id": "L01", "text": "A Ana perdeu a chave de casa. De novo.", "emphasis": ["chave"] },
+      { "id": "L02", "text": "O ônibus da excursão sai em dez minutos.", "emphasis": ["dez"] },
+      { "id": "L03", "text": "Ela já procurou na mochila, no sofá e na geladeira.", "emphasis": ["geladeira"] },
+      { "id": "L04", "text": "Spoiler: chave não gela." },
+      { "id": "L05", "text": "Aí a mãe mandou uma mensagem." },
+      { "id": "L06", "text": "Uma foto. Da chave. Na boca do cachorro.", "emphasis": ["cachorro"] },
+      { "id": "L07", "text": "E o cachorro fugiu para o pátio do vizinho." },
+      { "id": "L08", "text": "Ana, corre atrás do cachorro ou pula a janela sem chave?" }
+    ]
+  },
+  "beats": [
+    {
+      "id": "B01", "from": { "line": "L01" }, "set": "quarto", "shot": { "type": "close", "subject": "ana" },
+      "actors": [{ "id": "ana", "x": 0.5, "pose": "panic", "expression": "panic", "look": "camera" }],
+      "events": [
+        { "at": { "line": "L01", "word": 4 }, "shake": 0.5 },
+        { "at": { "line": "L01", "word": 7 }, "actor": "ana", "expression": "sad", "pose": "slump" }
+      ],
+      "purpose": "Gancho: o problema em 1 segundo."
+    },
+    {
+      "id": "B02", "from": { "line": "L02" }, "set": "quarto", "shot": { "type": "medium", "subject": "ana" },
+      "actors": [{ "id": "ana", "x": 0.4, "pose": "phone", "expression": "nervous", "look": "phone" }],
+      "overlays": [{ "id": "relogio", "kind": "sticker", "slot": "right", "from": { "line": "L02", "word": 6 }, "sticker": "clock" }],
+      "events": [{ "at": { "line": "L02", "word": 6 }, "hud": { "item": "risco", "value": 0.5 } }],
+      "purpose": "Prazo concreto."
+    },
+    {
+      "id": "B03", "from": { "line": "L03" }, "set": "quarto", "shot": { "type": "wide", "pan": "right" },
+      "actors": [{ "id": "ana", "x": 0.15, "pose": "sneak", "expression": "determined" }],
+      "events": [
+        { "at": { "line": "L03", "word": 4 }, "actor": "ana", "x": 0.45 },
+        { "at": { "line": "L03", "word": 6 }, "actor": "ana", "x": 0.8 },
+        { "at": { "line": "L03", "word": 9 }, "actor": "ana", "pose": "shrug", "expression": "deadpan", "look": "camera" }
+      ],
+      "overlays": [{ "id": "geladeira", "kind": "tag", "slot": "top", "from": { "line": "L03", "word": 9 }, "text": "NA GELADEIRA?!" }],
+      "purpose": "Tentativa absurda (gag)."
+    },
+    {
+      "id": "B04", "from": { "line": "L04" }, "set": "quarto", "shot": { "type": "close", "subject": "ana" },
+      "actors": [{ "id": "ana", "x": 0.8, "pose": "facepalm", "expression": "deadpan", "look": "camera" }],
+      "overlays": [{ "id": "nao", "kind": "sticker", "slot": "top", "from": { "line": "L04", "word": 2 }, "sticker": "cross" }],
+      "purpose": "Narrador sarcástico corta a tentativa."
+    },
+    {
+      "id": "B05", "from": { "line": "L05" }, "set": "quarto", "shot": { "type": "wide" },
+      "actors": [{ "id": "ana", "x": 0.12, "pose": "phone", "expression": "neutral", "look": "phone" }],
+      "overlays": [{
+        "id": "chat", "kind": "phone", "slot": "right", "from": { "line": "L05", "word": 3 }, "title": "Mãe", "text": "online",
+        "messages": [
+          { "from": "Mãe", "text": "Achei sua chave" },
+          { "from": "Mãe", "text": "[foto] a chave na boca do Bolinha" },
+          { "from": "Mãe", "text": "ele fugiu kkkk" }
+        ]
+      }],
+      "events": [
+        { "at": { "line": "L06", "word": 7 }, "actor": "ana", "expression": "shocked", "pose": "shocked" },
+        { "at": { "line": "L06", "word": 7 }, "shake": 0.7, "hud": { "item": "risco", "value": 0.8 } }
+      ],
+      "captions": "lower",
+      "purpose": "Virada: a chave está com o cachorro."
+    },
+    {
+      "id": "B06", "from": { "line": "L07" }, "set": "patio", "shot": { "type": "wide" }, "transition": "whip",
+      "actors": [{ "id": "ana", "x": 0.1, "pose": "run", "expression": "determined", "facing": "right" }],
+      "events": [
+        { "at": { "line": "L07", "word": 0 }, "hud": { "item": "prazo", "value": 6 } },
+        { "at": { "line": "L07", "word": 2 }, "actor": "ana", "x": 0.7 }
+      ],
+      "overlays": [{ "id": "fogo", "kind": "sticker", "slot": "left", "from": { "line": "L07", "word": 5 }, "sticker": "fire" }],
+      "purpose": "Escalada: corrida contra o tempo."
+    }
+  ],
+  "vote": {
+    "from": { "line": "L08" }, "duration": 8, "actor": "ana",
+    "question": "O que a Ana faz?", "cta": "Comenta A ou B",
+    "a": { "label": "Correr atrás do cachorro", "consequence": "pega a chave, perde o ônibus", "pose": "run", "expression": "determined" },
+    "b": { "label": "Pular a janela sem chave", "consequence": "pega o ônibus, fica trancada fora", "pose": "sneak", "expression": "nervous" }
+  },
+  "continuity": { "previous": null, "facts": ["A Ana usa coque e mochila amarela.", "O cachorro da família se chama Bolinha."] }
+}
