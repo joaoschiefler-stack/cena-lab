@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { ComedyStudio } from "@/components/studio/comedy/ComedyStudio";
+import { StudioModes } from "@/components/studio/comedy/StudioModes";
 import { Studio } from "@/components/studio/Studio";
 import { DEFAULT_CONFIG } from "@/lib/catalog";
 import { previewForRequest } from "@/lib/generation/service";
+import { viralEngineEnabled } from "@/lib/viral/flag";
 
 export const metadata: Metadata = {
   title: "Estúdio",
@@ -25,7 +28,12 @@ export default function StudioPage() {
   const initialPlan = previewForRequest(DEFAULT_CONFIG)!;
   return (
     <div className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
-      <Studio header={header} initialPlan={initialPlan} />
+      {viralEngineEnabled() ? (
+        // Modo experimental: só existe com CENA_VIRAL_ENGINE=on no servidor.
+        <StudioModes classic={<Studio header={header} initialPlan={initialPlan} />} comedy={<ComedyStudio />} />
+      ) : (
+        <Studio header={header} initialPlan={initialPlan} />
+      )}
     </div>
   );
 }

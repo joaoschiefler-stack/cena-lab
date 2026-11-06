@@ -20,7 +20,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@viral/*": ["./experiments/viral-engine/src/core/*"]
     }
   },
   "include": [

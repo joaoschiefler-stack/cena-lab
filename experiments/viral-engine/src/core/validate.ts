@@ -308,16 +308,18 @@ export function validateDraft(input: unknown): ValidationResult {
     c.str(v.cta, "vote.cta", 30);
     if (!castIds.has(v.actor as string)) c.fail("vote.actor", "ator não existe no elenco");
     const labels: string[] = [];
+    const consequences: string[] = [];
     for (const side of ["a", "b"] as const) {
       const p = `vote.${side}`;
       if (!c.obj(v[side], p, ["label", "consequence", "pose", "expression"], ["label", "consequence", "pose", "expression"])) continue;
       const o = v[side] as Obj;
       if (c.str(o.label, `${p}.label`, 42)) labels.push((o.label as string).trim().toLowerCase());
-      c.str(o.consequence, `${p}.consequence`, 60);
+      if (c.str(o.consequence, `${p}.consequence`, 60)) consequences.push((o.consequence as string).trim().toLowerCase());
       c.oneOf(o.pose, `${p}.pose`, POSES);
       c.oneOf(o.expression, `${p}.expression`, EXPRESSIONS);
     }
     if (labels.length === 2 && labels[0] === labels[1]) c.fail("vote", "as alternativas A e B são iguais");
+    if (consequences.length === 2 && consequences[0] === consequences[1]) c.fail("vote", "A e B precisam de consequências diferentes");
   }
 
   if (c.obj(d.continuity, "continuity", ["previous", "facts"], ["facts"])) {

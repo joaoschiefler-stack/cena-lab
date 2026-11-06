@@ -297,6 +297,7 @@ describe("16. o engine não entra no código do navegador (verificação estáti
   const resolveImport = (from: string, spec: string): string | null => {
     let base: string;
     if (spec.startsWith("@/")) base = path.join(SRC, spec.slice(2));
+    else if (spec.startsWith("@viral/")) base = path.resolve("experiments/viral-engine/src/core", spec.slice(7));
     else if (spec.startsWith(".")) base = path.resolve(path.dirname(from), spec);
     else return null;
     for (const ext of ["", ".ts", ".tsx", "/index.ts", "/index.tsx"]) {
@@ -345,14 +346,17 @@ describe("16. o engine não entra no código do navegador (verificação estáti
   });
   it("nenhum arquivo do engine, do núcleo de geração ou da demo da homepage é alcançável a partir do navegador", () => {
     const graph = [...clientGraph()].map((f) => path.relative(SRC, f).replace(/\\/g, "/"));
-    const leaks = graph.filter((f) => /^lib\/engine\/|^lib\/generation\/(service|input|dev-access)|^lib\/landing-demo/.test(f));
+    const leaks = graph.filter((f) => /^lib\/engine\/|^lib\/generation\/(service|input|dev-access)|^lib\/landing-demo|^lib\/viral\/(comedy|service|input|flag)|experiments\//.test(f));
     expect(leaks).toEqual([]);
     // O estúdio usa só o catálogo público e a referência à Server Action.
     expect(graph).toContain("lib/catalog/index.ts");
     expect(graph).toContain("lib/generation/actions.ts");
+    // O modo experimental também: rótulos do formulário + referência às Server Actions.
+    expect(graph).toContain("lib/viral/catalog.ts");
+    expect(graph).toContain("lib/viral/actions.ts");
   });
   it("o engine e a demo são marcados server-only (o build falha se um componente do navegador os importar)", () => {
-    for (const f of ["src/lib/engine/index.ts", "src/lib/engine/generate.ts", "src/lib/generation/service.ts", "src/lib/landing-demo.ts"])
+    for (const f of ["src/lib/engine/index.ts", "src/lib/engine/generate.ts", "src/lib/generation/service.ts", "src/lib/landing-demo.ts", "src/lib/viral/comedy.ts", "src/lib/viral/service.ts", "src/lib/viral/input.ts", "src/lib/viral/flag.ts"])
       expect(readFileSync(f, "utf8")).toMatch(/^import "server-only";/);
   });
   it("o catálogo público só importa tipos do engine", () => {

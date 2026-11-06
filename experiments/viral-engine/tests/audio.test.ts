@@ -98,7 +98,7 @@ describe("timestamps inconsistentes são recusados", () => {
   it("sobreposição entre palavras", () => expect(errs((a) => (a.words[2].start = a.words[1].start + 0.01))).toMatch(/antes do fim da anterior/));
   it("palavra além do fim do áudio", () => expect(errs((a) => (a.audio.duration = 0.5))).toMatch(/depois do fim do áudio/));
   it("palavra impossivelmente longa", () => expect(errs((a) => (a.words[3].end = a.words[3].start + 4))).toMatch(/dura/));
-  it("silêncio impossível no meio da fala", () => expect(errs((a) => { for (const w of a.words.slice(2)) (w.start += 9), (w.end += 9); a.audio.duration += 9; })).toMatch(/silêncio de/));
+  it("silêncio impossível no meio da fala", () => expect(errs((a) => { for (const w of a.words.slice(2)) { w.start += 9; w.end += 9; } a.audio.duration += 9; })).toMatch(/silêncio de/));
   it("tempo não numérico", () => expect(errs((a) => (a.words[0].start = NaN))).toMatch(/não numérico/));
   it("falta de alinhamento", () => expect(errs((a) => (a.words = []))).toMatch(/falta o alinhamento/));
 });
