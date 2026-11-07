@@ -116,6 +116,28 @@ describe("Cakto — processamento", () => {
     expect(r.body.outcome).toBe("granted");
   });
 
+  it("oferta de teste (outra oferta, R$5) do MESMO produto → concede à conta do callback", async () => {
+    const fn = applyOk();
+    const teste = order({
+      id: "pedido-oferta-teste",
+      amount: 5.0,
+      baseAmount: 5.0,
+      offer: { id: "T5abcde", name: "Teste R$5", price: 5.0, currency: "BRL" },
+      checkoutUrl: `https://pay.cakto.com.br/T5abcde?callback=${USER}&sck=${USER}`,
+      sck: USER,
+    });
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved", teste)), config: CONFIG, apply: fn });
+    expect(r.body).toEqual({ ok: true, outcome: "granted" });
+    expect(fn.mock.calls[0][1]).toMatchObject({ orderId: "pedido-oferta-teste", productId: PRODUCT, userHint: USER });
+  });
+
+  it("CAKTO_PRODUCT_ID com o id da OFERTA (código do link) → other_product, com o produto recebido para diagnóstico", async () => {
+    const fn = applyOk();
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved")), config: { ...CONFIG, productId: "T5abcde" }, apply: fn });
+    expect(r.body).toEqual({ ok: true, outcome: "other_product", received_product: `${PRODUCT}/42bruPi` });
+    expect(fn).not.toHaveBeenCalled();
+  });
+
   it("purchase_approved sem status paid não concede", async () => {
     const fn = applyOk();
     const r = await handleCaktoWebhook({ ...signed(body("purchase_approved", order({ status: "waiting_payment" }))), config: CONFIG, apply: fn });

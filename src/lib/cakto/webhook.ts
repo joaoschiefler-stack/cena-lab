@@ -119,7 +119,8 @@ export type ApplyCaktoEvent = (event: string, order: CaktoOrder) => Promise<stri
 
 export interface WebhookResult {
   status: number;
-  body: { ok: boolean; outcome?: string; error?: string };
+  /** `received_product`: ids do produto recusado, para diagnosticar CAKTO_PRODUCT_ID errado (não são segredo). */
+  body: { ok: boolean; outcome?: string; error?: string; received_product?: string };
 }
 
 /**
@@ -160,13 +161,16 @@ export async function handleCaktoWebhook(input: {
   if (orders.length === 0 || orders.some((o) => !o)) return { status: 400, body: { ok: false, error: "pedido sem id/status" } };
 
   const outcomes: string[] = [];
+  const otherProducts: string[] = [];
   try {
     for (const order of orders as CaktoOrder[]) {
       if (caktoAction(event, order.orderStatus) === "ignore") {
         outcomes.push("ignored");
       } else if (order.productId !== config.productId && order.productShortId !== config.productId) {
         // Só o produto do CENA LAB concede ou revoga (order bumps e outros produtos passam).
+        // A oferta não importa: toda oferta do produto (inclusive uma de teste) traz o id do produto.
         outcomes.push("other_product");
+        otherProducts.push(`${order.productId ?? "-"}/${order.productShortId ?? "-"}`);
       } else {
         outcomes.push(await apply(event, order));
       }
@@ -174,5 +178,7 @@ export async function handleCaktoWebhook(input: {
   } catch {
     return { status: 500, body: { ok: false, error: "falha ao registrar" } };
   }
-  return { status: 200, body: { ok: true, outcome: outcomes.join(",") } };
+  const body: WebhookResult["body"] = { ok: true, outcome: outcomes.join(",") };
+  if (otherProducts.length) body.received_product = otherProducts.join(",");
+  return { status: 200, body };
 }

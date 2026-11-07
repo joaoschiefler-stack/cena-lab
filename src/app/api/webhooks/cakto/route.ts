@@ -37,8 +37,9 @@ export async function POST(request: NextRequest) {
       return String(data);
     },
   });
-  // Registro mínimo (sem e-mail, secret nem corpo): resultado e status.
-  console.info(`[cakto] ${result.status} ${result.body.outcome ?? result.body.error}`);
+  // Registro mínimo (sem e-mail, secret nem corpo): resultado, status e, se recusado, o produto recebido.
+  const product = result.body.received_product ? ` produto=${result.body.received_product}` : "";
+  console.info(`[cakto] ${result.status} ${result.body.outcome ?? result.body.error}${product}`);
   return NextResponse.json(result.body, { status: result.status });
 }
 
