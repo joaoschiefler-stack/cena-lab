@@ -154,6 +154,17 @@ describe("destino depois de entrar ou confirmar o e-mail", () => {
   });
 });
 
+describe("sessão lida só na requisição real", () => {
+  it("o cliente Supabase do servidor espera connection() antes de ler a sessão (o auth-js usa Date.now())", () => {
+    const src = readFileSync("src/lib/supabase/server.ts", "utf8");
+    expect(src).toMatch(/await connection\(\);\s*const cookieStore = await cookies\(\);/);
+  });
+  it("visitante sem cookie de sessão não cria o cliente (landing continua pré-renderizada)", () => {
+    const src = readFileSync("src/lib/viewer.ts", "utf8");
+    expect(src.indexOf('startsWith("sb-")')).toBeLessThan(src.indexOf("getAccess()"));
+  });
+});
+
 describe("cabeçalho conforme quem está vendo", () => {
   const html = (viewer: "guest" | "member" | "licensed", salesOpen = false) => renderToStaticMarkup(<SiteHeader hasVideos={false} viewer={viewer} salesOpen={salesOpen} />);
   const logoHref = (h: string) => h.match(/<a[^>]*aria-label="CENA LAB — início"[^>]*>/)?.[0].match(/href="([^"]+)"/)?.[1];
