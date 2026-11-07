@@ -54,7 +54,7 @@ describe("página de planos", () => {
 
   it("vendas abertas no servidor: cadastro antes do checkout (o link de pagamento só sai ligado a uma conta)", () => {
     const html = renderToStaticMarkup(
-      <PlansView sales={parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc" })} />,
+      <PlansView sales={parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc", CENA_CHECKOUT_LINK_SECRET: "chave-de-teste-do-link-com-32-caracteres" })} />,
     );
     expect(html).toContain('data-cta="signup-first"');
     expect(html).not.toContain("pagamento.exemplo");

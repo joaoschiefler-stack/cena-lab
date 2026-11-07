@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { buttonClass } from "@/components/ui/Button";
+import { accountToken, checkoutLinkSecret } from "@/lib/checkout-link";
 import type { SalesConfig } from "@/lib/sales-config";
 import { getViewer } from "@/lib/viewer";
 import { PurchaseCta } from "./PurchaseCta";
@@ -26,5 +27,7 @@ export async function ViewerPurchaseCta({ sales, className = "", tone = "light" 
     );
   }
   const buyerId = viewer.status === "no_license" || viewer.status === "revoked" ? (viewer.user?.id ?? null) : null;
-  return <PurchaseCta sales={sales} className={className} tone={tone} buyerId={buyerId} />;
+  const secret = checkoutLinkSecret(process.env);
+  const buyerToken = buyerId && secret ? accountToken(buyerId, secret) : null;
+  return <PurchaseCta sales={sales} className={className} tone={tone} buyerToken={buyerToken} />;
 }

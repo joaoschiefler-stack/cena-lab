@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { destinationAfterAuth, homeFor } from "@/lib/auth/destination";
 import { handleKiwifyWebhook, kiwifyAction, kiwifyConfig, kiwifySignature, parseKiwifyEvent, verifyKiwifySignature } from "@/lib/kiwify/webhook";
 import type { KiwifyConfig, KiwifyEvent } from "@/lib/kiwify/webhook";
+import { accountToken } from "@/lib/checkout-link";
 import { checkoutUrlFor, parseSalesConfig } from "@/lib/sales-config";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -23,7 +24,9 @@ const DOC_BODY = '{"order_id":"9b1c2d3e-0000-4000-8000-000000000001","order_stat
 const DOC_SIGNATURE = "bf18f352a4f981b91dfa3f6d8742a81080ab8c86";
 
 const USER = "6f1d2c3b-4a5e-4f60-8a7b-9c0d1e2f3a4b";
-const CONFIG: KiwifyConfig = { enabled: true, tokens: [DOC_TOKEN], productId: "prod-cena", missing: [] };
+const LINK_SECRET = "chave-de-teste-do-link-com-32-caracteres";
+const USER_TOKEN = accountToken(USER, LINK_SECRET);
+const CONFIG: KiwifyConfig = { enabled: true, tokens: [DOC_TOKEN], productId: "prod-cena", linkSecret: LINK_SECRET, missing: [] };
 const sale = (patch: Record<string, unknown> = {}) =>
   JSON.stringify({
     order_id: "pedido-1",
@@ -31,7 +34,7 @@ const sale = (patch: Record<string, unknown> = {}) =>
     webhook_event_type: "order_approved",
     Product: { product_id: "prod-cena", product_name: "CENA LAB Fundador" },
     Customer: { email: "Ana@Exemplo.com", full_name: "Ana" },
-    TrackingParameters: { sck: USER },
+    TrackingParameters: { sck: USER_TOKEN },
     ...patch,
   });
 const signed = (body: string, token = DOC_TOKEN) => ({ rawBody: body, signature: kiwifySignature(token, body) });
@@ -57,9 +60,9 @@ describe("webhook Kiwify — autenticidade", () => {
 
   it("fica desligada sem token, produto ou chave secreta (sem token a assinatura não prova nada)", () => {
     expect(kiwifyConfig({}).enabled).toBe(false);
-    expect(kiwifyConfig({ KIWIFY_WEBHOOK_TOKEN: "abcdefgh", KIWIFY_PRODUCT_ID: "p" }).missing).toEqual(["SUPABASE_SECRET_KEY"]);
-    expect(kiwifyConfig({ KIWIFY_WEBHOOK_TOKEN: "abcdefgh", KIWIFY_PRODUCT_ID: "p", SUPABASE_SECRET_KEY: "x" }).enabled).toBe(true);
-    expect(kiwifyConfig({ KIWIFY_WEBHOOK_TOKEN: "curto", KIWIFY_PRODUCT_ID: "p", SUPABASE_SECRET_KEY: "x" }).enabled).toBe(false);
+    expect(kiwifyConfig({ KIWIFY_WEBHOOK_TOKEN: "abcdefgh", KIWIFY_PRODUCT_ID: "p" }).missing).toEqual(["SUPABASE_SECRET_KEY", "CENA_CHECKOUT_LINK_SECRET"]);
+    expect(kiwifyConfig({ KIWIFY_WEBHOOK_TOKEN: "abcdefgh", KIWIFY_PRODUCT_ID: "p", SUPABASE_SECRET_KEY: "x", CENA_CHECKOUT_LINK_SECRET: LINK_SECRET }).enabled).toBe(true);
+    expect(kiwifyConfig({ KIWIFY_WEBHOOK_TOKEN: "curto", KIWIFY_PRODUCT_ID: "p", SUPABASE_SECRET_KEY: "x", CENA_CHECKOUT_LINK_SECRET: LINK_SECRET }).enabled).toBe(false);
   });
 });
 
@@ -128,9 +131,10 @@ describe("webhook Kiwify — processamento", () => {
     expect((await handleKiwifyWebhook({ ...signed("x".repeat(300 * 1024)), config: CONFIG, apply: apply() })).status).toBe(413);
   });
 
-  it("leitura do evento: formatos do webhook e da API; sck só se for UUID", () => {
-    expect(parseKiwifyEvent(JSON.parse(sale({ TrackingParameters: { sck: "qualquer" } })))!.userHint).toBeNull();
-    const api = parseKiwifyEvent({ order_id: "x", order_status: "paid", webhook_event_type: "order_approved", product: { id: "p2" }, customer: { email: "B@c.com" }, tracking: { sck: USER } })!;
+  it("leitura do evento: formatos do webhook e da API; sck só se for o token assinado da conta", () => {
+    expect(parseKiwifyEvent(JSON.parse(sale({ TrackingParameters: { sck: "qualquer" } })), LINK_SECRET)!.userHint).toBeNull();
+    expect(parseKiwifyEvent(JSON.parse(sale({ TrackingParameters: { sck: USER } })), LINK_SECRET)!.userHint).toBeNull();
+    const api = parseKiwifyEvent({ order_id: "x", order_status: "paid", webhook_event_type: "order_approved", product: { id: "p2" }, customer: { email: "B@c.com" }, tracking: { sck: USER_TOKEN } }, LINK_SECRET)!;
     expect(api).toMatchObject({ productId: "p2", email: "b@c.com", userHint: USER });
     expect(kiwifyAction({ ...api, orderStatus: "paid", eventType: "subscription_renewed" })).toBe("ignore");
   });
@@ -186,12 +190,12 @@ describe("cabeçalho conforme quem está vendo", () => {
 });
 
 describe("compra: cadastro antes do checkout", () => {
-  const open = parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pay.kiwify.com.br/abc123" });
+  const open = parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pay.kiwify.com.br/abc123", CENA_CHECKOUT_LINK_SECRET: LINK_SECRET });
   const closed = parseSalesConfig({});
 
   it("pré-lançamento: 'Em breve' e nenhum link de checkout, para qualquer pessoa", () => {
-    for (const buyerId of [null, USER]) {
-      const h = renderToStaticMarkup(<PurchaseCta sales={closed} buyerId={buyerId} />);
+    for (const buyerToken of [null, USER_TOKEN]) {
+      const h = renderToStaticMarkup(<PurchaseCta sales={closed} buyerToken={buyerToken} />);
       expect(h).toContain("Em breve");
       expect(h).not.toContain("kiwify");
     }
@@ -201,10 +205,10 @@ describe("compra: cadastro antes do checkout", () => {
     expect(h).toContain('href="/cadastro"');
     expect(h).not.toContain("pay.kiwify");
   });
-  it("vendas abertas, conta logada: checkout ligado à conta (callback e sck)", () => {
-    const h = renderToStaticMarkup(<PurchaseCta sales={open} buyerId={USER} />);
-    expect(h).toContain(`https://pay.kiwify.com.br/abc123?callback=${USER}&amp;sck=${USER}`);
-    expect(checkoutUrlFor("https://pay.kiwify.com.br/abc123?a=1", USER)).toBe(`https://pay.kiwify.com.br/abc123?a=1&callback=${USER}&sck=${USER}`);
+  it("vendas abertas, conta logada: checkout ligado à conta pelo token assinado (callback e sck)", () => {
+    const h = renderToStaticMarkup(<PurchaseCta sales={open} buyerToken={USER_TOKEN} />);
+    expect(h).toContain(`https://pay.kiwify.com.br/abc123?callback=${USER_TOKEN}&amp;sck=${USER_TOKEN}`);
+    expect(checkoutUrlFor("https://pay.kiwify.com.br/abc123?a=1", USER_TOKEN)).toBe(`https://pay.kiwify.com.br/abc123?a=1&callback=${USER_TOKEN}&sck=${USER_TOKEN}`);
   });
 });
 
@@ -221,6 +225,7 @@ describe("credencial administrativa isolada", () => {
     expect(readFileSync("src/lib/supabase/admin.ts", "utf8")).toMatch(/^import "server-only";/);
     expect(readFileSync("src/lib/kiwify/webhook.ts", "utf8")).toMatch(/^import "server-only";/);
     expect(readFileSync("src/lib/cakto/webhook.ts", "utf8")).toMatch(/^import "server-only";/);
+    expect(readFileSync("src/lib/checkout-link.ts", "utf8")).toMatch(/^import "server-only";/);
   });
   it("a chave secreta não tem versão NEXT_PUBLIC_ em lugar nenhum", () => {
     for (const f of files("src")) expect(readFileSync(f, "utf8"), f).not.toMatch(/NEXT_PUBLIC_[A-Z_]*(SECRET|SERVICE)/);

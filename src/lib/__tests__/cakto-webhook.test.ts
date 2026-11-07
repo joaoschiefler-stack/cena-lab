@@ -1,8 +1,10 @@
+import { execFileSync } from "node:child_process";
 import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { caktoAction, caktoConfig, caktoSignature, handleCaktoWebhook, parseCaktoOrder, verifyCaktoSignature } from "@/lib/cakto/webhook";
 import type { CaktoConfig, CaktoOrder } from "@/lib/cakto/webhook";
+import { accountFromToken, accountToken } from "@/lib/checkout-link";
 import { checkoutUrlFor } from "@/lib/sales-config";
 
 /*
@@ -16,7 +18,9 @@ const SECRET = "b3f1a9c2-7b4d-4a8e-9f01-2c6d5b8a4e37";
 const NOW = 1_762_455_715;
 const USER = "6f1d2c3b-4a5e-4f60-8a7b-9c0d1e2f3a4b";
 const PRODUCT = "cd287b31-d4b7-4e94-858a-96e05ce2f4a2";
-const CONFIG: CaktoConfig = { enabled: true, secret: SECRET, productId: PRODUCT, missing: [] };
+const LINK_SECRET = "chave-de-teste-do-link-com-32-caracteres";
+const USER_TOKEN = accountToken(USER, LINK_SECRET);
+const CONFIG: CaktoConfig = { enabled: true, secret: SECRET, productId: PRODUCT, linkSecret: LINK_SECRET, missing: [] };
 
 // Exemplo abreviado de purchase_approved da documentação (conceitos/webhooks), com o callback da conta.
 const order = (patch: Record<string, unknown> = {}) => ({
@@ -27,7 +31,7 @@ const order = (patch: Record<string, unknown> = {}) => ({
   customer: { id: 481920, name: "John Doe", email: "John.Doe@Example.com" },
   product: { id: PRODUCT, short_id: "42bruPi", name: "CENA LAB Fundador", type: "unique" },
   sck: null,
-  callback: USER,
+  callback: USER_TOKEN,
   ...patch,
 });
 const body = (event: string, data: unknown = order(), secret: string | undefined = SECRET) => JSON.stringify({ secret, event, data });
@@ -67,9 +71,11 @@ describe("Cakto — autenticidade", () => {
 
   it("desligada sem secret, produto ou chave do Supabase", () => {
     expect(caktoConfig({}).enabled).toBe(false);
-    expect(caktoConfig({}).missing).toEqual(["CAKTO_WEBHOOK_SECRET", "CAKTO_PRODUCT_ID", "SUPABASE_SECRET_KEY"]);
-    expect(caktoConfig({ CAKTO_WEBHOOK_SECRET: SECRET, CAKTO_PRODUCT_ID: PRODUCT, SUPABASE_SECRET_KEY: "x" }).enabled).toBe(true);
-    expect(caktoConfig({ CAKTO_WEBHOOK_SECRET: "curto", CAKTO_PRODUCT_ID: PRODUCT, SUPABASE_SECRET_KEY: "x" }).enabled).toBe(false);
+    expect(caktoConfig({}).missing).toEqual(["CAKTO_WEBHOOK_SECRET", "CAKTO_PRODUCT_ID", "SUPABASE_SECRET_KEY", "CENA_CHECKOUT_LINK_SECRET"]);
+    const ok = { CAKTO_WEBHOOK_SECRET: SECRET, CAKTO_PRODUCT_ID: PRODUCT, SUPABASE_SECRET_KEY: "x", CENA_CHECKOUT_LINK_SECRET: LINK_SECRET };
+    expect(caktoConfig(ok).enabled).toBe(true);
+    expect(caktoConfig({ ...ok, CAKTO_WEBHOOK_SECRET: "curto" }).enabled).toBe(false);
+    expect(caktoConfig({ ...ok, CENA_CHECKOUT_LINK_SECRET: "curta" }).missing).toEqual(["CENA_CHECKOUT_LINK_SECRET"]);
   });
 });
 
@@ -123,8 +129,8 @@ describe("Cakto — processamento", () => {
       amount: 5.0,
       baseAmount: 5.0,
       offer: { id: "T5abcde", name: "Teste R$5", price: 5.0, currency: "BRL" },
-      checkoutUrl: `https://pay.cakto.com.br/T5abcde?callback=${USER}&sck=${USER}`,
-      sck: USER,
+      checkoutUrl: `https://pay.cakto.com.br/T5abcde?callback=${USER_TOKEN}&sck=${USER_TOKEN}`,
+      sck: USER_TOKEN,
     });
     const r = await handleCaktoWebhook({ ...signed(body("purchase_approved", teste)), config: CONFIG, apply: fn });
     expect(r.body).toEqual({ ok: true, outcome: "granted" });
@@ -213,18 +219,38 @@ describe("Cakto — processamento", () => {
 });
 
 describe("Cakto — vínculo com a conta", () => {
-  it("callback (ou sck) só vale se for um UUID; e-mail não indica conta", () => {
-    expect(parseCaktoOrder("purchase_approved", order({ callback: "qualquer" }))!.userHint).toBeNull();
-    expect(parseCaktoOrder("purchase_approved", order({ callback: null, sck: USER }))!.userHint).toBe(USER);
-    expect(parseCaktoOrder("purchase_approved", order({ callback: null }))!.userHint).toBeNull();
+  it("callback (ou sck) só vale com o token assinado pelo servidor; e-mail não indica conta", () => {
+    const hint = (patch: Record<string, unknown>) => parseCaktoOrder("purchase_approved", order(patch), LINK_SECRET)!.userHint;
+    expect(hint({})).toBe(USER);
+    expect(hint({ callback: null, sck: USER_TOKEN })).toBe(USER);
+    expect(hint({ callback: "qualquer" })).toBeNull();
+    expect(hint({ callback: null })).toBeNull();
+    // UUID cru posto à mão na URL não indica conta nenhuma
+    expect(hint({ callback: USER, sck: USER })).toBeNull();
+    // token de outra conta com a assinatura copiada, ou assinado com outra chave → recusado
+    const OUTRO = "0b7a6c5d-4e3f-4a1b-9c8d-7e6f5a4b3c2d";
+    expect(hint({ callback: `${OUTRO}.${USER_TOKEN.split(".")[1]}` })).toBeNull();
+    expect(hint({ callback: accountToken(OUTRO, "outra-chave-qualquer-com-32-caracteres!") })).toBeNull();
+    expect(parseCaktoOrder("purchase_approved", order(), null)!.userHint).toBeNull();
     expect(caktoAction("purchase_approved", "paid")).toBe("grant");
     expect(caktoAction("refund", "refunded")).toBe("revoke");
   });
 
-  it("o link do checkout leva o id da conta em callback e sck", () => {
-    const url = new URL(checkoutUrlFor("https://pay.cakto.com.br/abc123", USER));
-    expect(url.searchParams.get("callback")).toBe(USER);
-    expect(url.searchParams.get("sck")).toBe(USER);
+  it("o link do checkout leva o token assinado da conta em callback e sck, no formato aceito pela Cakto", () => {
+    expect(USER_TOKEN).toMatch(/^[A-Za-z0-9._~-]{1,255}$/);
+    expect(accountFromToken(USER_TOKEN, LINK_SECRET)).toBe(USER);
+    const url = new URL(checkoutUrlFor("https://pay.cakto.com.br/abc123", USER_TOKEN));
+    expect(url.searchParams.get("callback")).toBe(USER_TOKEN);
+    expect(url.searchParams.get("sck")).toBe(USER_TOKEN);
+    expect(url.search).toBe(`?callback=${USER_TOKEN}&sck=${USER_TOKEN}`);
+  });
+
+  it("scripts/link-checkout.mjs gera o mesmo link que o site", () => {
+    const out = execFileSync(process.execPath, ["scripts/link-checkout.mjs", "https://pay.cakto.com.br/abc123", USER], {
+      env: { ...process.env, CENA_CHECKOUT_LINK_SECRET: LINK_SECRET },
+      encoding: "utf8",
+    });
+    expect(out.trim().split("\n").pop()).toBe(checkoutUrlFor("https://pay.cakto.com.br/abc123", USER_TOKEN));
   });
 
   it("no banco, só a conta indicada recebe a licença: sem vínculo por e-mail", () => {

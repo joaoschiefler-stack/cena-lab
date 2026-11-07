@@ -20,12 +20,18 @@ describe("modo comercial (servidor)", () => {
   });
 
   it("SALES_ENABLED com URL inválida ou sem https continua fechado", () => {
-    expect(parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "isto não é url" }).canSell).toBe(false);
-    expect(parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "http://pagamento.exemplo/abc" }).canSell).toBe(false);
+    expect(parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "isto não é url", CENA_CHECKOUT_LINK_SECRET: "chave-de-teste-do-link-com-32-caracteres" }).issue).toMatch(/inválida/);
+    expect(parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "http://pagamento.exemplo/abc", CENA_CHECKOUT_LINK_SECRET: "chave-de-teste-do-link-com-32-caracteres" }).issue).toMatch(/https/);
   });
 
-  it("só abre vendas com SALES_ENABLED + URL https", () => {
-    const c = parseSalesConfig({ CENA_SALES_MODE: "sales_enabled", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc" });
+  it("SALES_ENABLED sem a chave do link (a compra não teria como indicar a conta) continua fechado", () => {
+    const c = parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc", CENA_CHECKOUT_LINK_SECRET: "curta" });
+    expect(c).toMatchObject({ canSell: false, checkoutUrl: null });
+    expect(c.issue).toMatch(/CENA_CHECKOUT_LINK_SECRET/);
+  });
+
+  it("só abre vendas com SALES_ENABLED + URL https + chave do link", () => {
+    const c = parseSalesConfig({ CENA_SALES_MODE: "sales_enabled", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc", CENA_CHECKOUT_LINK_SECRET: "chave-de-teste-do-link-com-32-caracteres" });
     expect(c).toMatchObject({ mode: "SALES_ENABLED", canSell: true, checkoutUrl: "https://pagamento.exemplo/abc" });
   });
 

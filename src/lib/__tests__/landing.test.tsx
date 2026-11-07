@@ -105,7 +105,7 @@ describe("seção de oferta", () => {
   });
 
   it("vendas abertas no servidor: visitante cria a conta antes; o link do checkout só sai ligado a uma conta", () => {
-    const sales = parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc" });
+    const sales = parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc", CENA_CHECKOUT_LINK_SECRET: "chave-de-teste-do-link-com-32-caracteres" });
     const html = renderToStaticMarkup(<OfferSection sales={sales} />);
     expect(html).toContain('data-cta="signup-first"');
     expect(html).toContain('href="/cadastro"');

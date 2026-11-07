@@ -1,5 +1,6 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { accountFromToken, checkoutLinkSecret } from "@/lib/checkout-link";
 
 /**
  * Webhook de vendas da Cakto (docs.cakto.com.br/conceitos/webhooks):
@@ -22,6 +23,8 @@ export interface CaktoConfig {
   secret: string | null;
   /** Id do produto "CENA LAB Fundador" (o `id` UUID ou o `short_id` do painel). */
   productId: string | null;
+  /** Chave dos tokens de conta do link do checkout (veja checkout-link.ts). */
+  linkSecret: string | null;
   /** Motivo de estar desligada (sem expor valores). */
   missing: string[];
 }
@@ -29,12 +32,14 @@ export interface CaktoConfig {
 export function caktoConfig(env: Record<string, string | undefined>): CaktoConfig {
   const secret = env.CAKTO_WEBHOOK_SECRET?.trim() || null;
   const productId = env.CAKTO_PRODUCT_ID?.trim() || null;
+  const linkSecret = checkoutLinkSecret(env);
   const missing = [
     !secret && "CAKTO_WEBHOOK_SECRET",
     !productId && "CAKTO_PRODUCT_ID",
     !env.SUPABASE_SECRET_KEY?.trim() && "SUPABASE_SECRET_KEY",
+    !linkSecret && "CENA_CHECKOUT_LINK_SECRET",
   ].filter(Boolean) as string[];
-  return { enabled: missing.length === 0 && (secret?.length ?? 0) >= 8, secret, productId, missing };
+  return { enabled: missing.length === 0 && (secret?.length ?? 0) >= 8, secret, productId, linkSecret, missing };
 }
 
 export function caktoSignature(secret: string, timestamp: string, rawBody: string): string {
@@ -67,14 +72,13 @@ export interface CaktoOrder {
   productId: string | null;
   productShortId: string | null;
   email: string | null;
-  /** Conta indicada no checkout (`callback`, ou `sck`), só se for um UUID. */
+  /** Conta indicada no checkout (`callback`, ou `sck`), só se o token for assinado por nós. */
   userHint: string | null;
 }
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
 const str = (v: unknown, max = 200) => (typeof v === "string" && v.trim() && v.length <= max ? v.trim() : null);
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type CaktoAction = "grant" | "revoke" | "ignore";
 
@@ -96,14 +100,14 @@ function normalizedStatus(event: string, status: string): string {
   return status;
 }
 
-export function parseCaktoOrder(event: string, data: unknown): CaktoOrder | null {
+export function parseCaktoOrder(event: string, data: unknown, linkSecret: string | null): CaktoOrder | null {
   if (!isObj(data)) return null;
   const orderId = str(data.id);
   const status = str(data.status, 60);
   if (!orderId || !status) return null;
   const product = isObj(data.product) ? data.product : {};
   const customer = isObj(data.customer) ? data.customer : {};
-  const hint = [str(data.callback, 255), str(data.sck, 255)].find((v) => v && UUID.test(v)) ?? null;
+  const hint = [data.callback, data.sck].map((v) => accountFromToken(v, linkSecret)).find(Boolean) ?? null;
   const email = str(customer.email, 320);
   return {
     orderId,
@@ -111,7 +115,7 @@ export function parseCaktoOrder(event: string, data: unknown): CaktoOrder | null
     productId: str(product.id),
     productShortId: str(product.short_id),
     email: email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email.toLowerCase() : null,
-    userHint: hint?.toLowerCase() ?? null,
+    userHint: hint,
   };
 }
 
@@ -157,7 +161,7 @@ export async function handleCaktoWebhook(input: {
   // Abandono de checkout não tem pedido (nem `id`): nada a fazer.
   if (event === "checkout_abandonment") return { status: 200, body: { ok: true, outcome: "ignored" } };
 
-  const orders = (Array.isArray(json.data) ? json.data : [json.data]).map((d) => parseCaktoOrder(event, d));
+  const orders = (Array.isArray(json.data) ? json.data : [json.data]).map((d) => parseCaktoOrder(event, d, config.linkSecret));
   if (orders.length === 0 || orders.some((o) => !o)) return { status: 400, body: { ok: false, error: "pedido sem id/status" } };
 
   const outcomes: string[] = [];

@@ -4,8 +4,9 @@
  *
  *   CENA_SALES_MODE   = PRELAUNCH (padrão) | SALES_ENABLED
  *   CENA_CHECKOUT_URL = URL https real do checkout (configurada depois)
+ *   CENA_CHECKOUT_LINK_SECRET = chave que assina a conta no link (checkout-link.ts)
  *
- * Vendas só abrem com as DUAS condições: modo SALES_ENABLED e URL válida.
+ * Vendas só abrem com as TRÊS condições: modo SALES_ENABLED, URL válida e a chave do link.
  * Qualquer outra combinação mantém "Em breve" — nunca um checkout fictício.
  */
 export type SalesMode = "PRELAUNCH" | "SALES_ENABLED";
@@ -23,6 +24,9 @@ export function parseSalesConfig(env: Record<string, string | undefined>): Sales
   const mode: SalesMode = env.CENA_SALES_MODE?.trim().toUpperCase() === "SALES_ENABLED" ? "SALES_ENABLED" : "PRELAUNCH";
   if (mode === "PRELAUNCH") return { mode, checkoutUrl: null, canSell: false, issue: null };
 
+  // Sem a chave, o link não teria como indicar a conta: a compra não liberaria acesso.
+  if ((env.CENA_CHECKOUT_LINK_SECRET?.trim().length ?? 0) < 32)
+    return { mode, checkoutUrl: null, canSell: false, issue: "CENA_CHECKOUT_LINK_SECRET não definida (mínimo 32 caracteres)" };
   const raw = env.CENA_CHECKOUT_URL?.trim();
   if (!raw) return { mode, checkoutUrl: null, canSell: false, issue: "CENA_CHECKOUT_URL não definida" };
   try {
@@ -35,15 +39,16 @@ export function parseSalesConfig(env: Record<string, string | undefined>): Sales
 }
 
 /**
- * Link do checkout para UMA conta: o id do usuário vai em `callback`, que a
- * Cakto grava no pedido e devolve em todo evento do webhook (data.callback),
- * e também em `sck` (rastreio, devolvido como data.sck). É só a indicação de
- * qual conta recebe a licença: quem libera o acesso é o webhook autenticado
- * com pagamento aprovado — nunca o retorno do navegador.
+ * Link do checkout para UMA conta: o token assinado da conta (accountToken, em
+ * checkout-link.ts) vai em `callback`, que a Cakto grava no pedido e devolve em
+ * todo evento do webhook (data.callback), e também em `sck` (rastreio,
+ * devolvido como data.sck). É só a indicação de qual conta recebe a licença:
+ * quem libera o acesso é o webhook autenticado com pagamento aprovado — nunca
+ * o retorno do navegador.
  */
-export function checkoutUrlFor(base: string, userId: string): string {
+export function checkoutUrlFor(base: string, accountToken: string): string {
   const url = new URL(base);
-  url.searchParams.set("callback", userId);
-  url.searchParams.set("sck", userId);
+  url.searchParams.set("callback", accountToken);
+  url.searchParams.set("sck", accountToken);
   return url.toString();
 }

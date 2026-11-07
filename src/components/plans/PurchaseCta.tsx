@@ -12,18 +12,18 @@ export function PurchaseCta({
   sales,
   className = "",
   tone = "light",
-  buyerId = null,
+  buyerToken = null,
 }: {
   sales: SalesConfig;
   className?: string;
   tone?: "light" | "dark";
-  /** Conta logada (verificada no servidor) que vai receber a licença. Sem ela, primeiro o cadastro. */
-  buyerId?: string | null;
+  /** Token assinado da conta logada (verificada no servidor) que vai receber a licença. Sem ele, primeiro o cadastro. */
+  buyerToken?: string | null;
 }) {
   const dark = tone === "dark";
   if (sales.canSell && sales.checkoutUrl) {
     // Cadastro antes do checkout: o pagamento precisa estar ligado a uma conta.
-    if (!buyerId) {
+    if (!buyerToken) {
       return (
         <div className={className} data-cta="signup-first">
           <Link href="/cadastro" className={buttonClass(dark ? "accent" : "primary", "lg", "w-full")}>
@@ -41,7 +41,7 @@ export function PurchaseCta({
     }
     return (
       <a
-        href={checkoutUrlFor(sales.checkoutUrl, buyerId)}
+        href={checkoutUrlFor(sales.checkoutUrl, buyerToken)}
         rel="noopener"
         className={buttonClass(dark ? "accent" : "primary", "lg", `w-full ${className}`)}
         data-cta="checkout"

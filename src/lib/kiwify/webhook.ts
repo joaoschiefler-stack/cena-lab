@@ -1,5 +1,6 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { accountFromToken, checkoutLinkSecret } from "@/lib/checkout-link";
 
 /**
  * Webhook de vendas da Kiwify (docs.kiwify.com.br/api-reference/webhooks/receiving):
@@ -23,6 +24,8 @@ export interface KiwifyConfig {
   /** Token atual e, durante uma troca, o anterior. */
   tokens: string[];
   productId: string | null;
+  /** Chave dos tokens de conta do link do checkout (veja checkout-link.ts). */
+  linkSecret: string | null;
   /** Motivo de estar desligada (sem expor valores). */
   missing: string[];
 }
@@ -30,12 +33,14 @@ export interface KiwifyConfig {
 export function kiwifyConfig(env: Record<string, string | undefined>): KiwifyConfig {
   const tokens = [env.KIWIFY_WEBHOOK_TOKEN, env.KIWIFY_WEBHOOK_TOKEN_PREVIOUS].map((t) => t?.trim() ?? "").filter((t) => t.length >= 8);
   const productId = env.KIWIFY_PRODUCT_ID?.trim() || null;
+  const linkSecret = checkoutLinkSecret(env);
   const missing = [
     !env.KIWIFY_WEBHOOK_TOKEN?.trim() && "KIWIFY_WEBHOOK_TOKEN",
     !productId && "KIWIFY_PRODUCT_ID",
     !env.SUPABASE_SECRET_KEY?.trim() && "SUPABASE_SECRET_KEY",
+    !linkSecret && "CENA_CHECKOUT_LINK_SECRET",
   ].filter(Boolean) as string[];
-  return { enabled: missing.length === 0 && tokens.length > 0, tokens, productId, missing };
+  return { enabled: missing.length === 0 && tokens.length > 0, tokens, productId, linkSecret, missing };
 }
 
 export function kiwifySignature(token: string, rawBody: string | Uint8Array): string {
@@ -55,16 +60,15 @@ export interface KiwifyEvent {
   orderStatus: string;
   productId: string | null;
   email: string | null;
-  /** Id da conta passado no checkout (`sck`), se for um UUID. */
+  /** Conta indicada no checkout (`sck`), só se o token for assinado por nós. */
   userHint: string | null;
 }
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
 const str = (v: unknown, max = 200) => (typeof v === "string" && v.trim() && v.length <= max ? v.trim() : null);
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export function parseKiwifyEvent(json: unknown): KiwifyEvent | null {
+export function parseKiwifyEvent(json: unknown, linkSecret: string | null): KiwifyEvent | null {
   if (!isObj(json)) return null;
   const orderId = str(json.order_id);
   const eventType = str(json.webhook_event_type, 60);
@@ -73,7 +77,6 @@ export function parseKiwifyEvent(json: unknown): KiwifyEvent | null {
   const product = isObj(json.Product) ? json.Product : isObj(json.product) ? json.product : {};
   const customer = isObj(json.Customer) ? json.Customer : isObj(json.customer) ? json.customer : {};
   const tracking = isObj(json.TrackingParameters) ? json.TrackingParameters : isObj(json.tracking) ? json.tracking : {};
-  const sck = str(tracking.sck, 80);
   const email = str(customer.email, 320);
   return {
     orderId,
@@ -81,7 +84,7 @@ export function parseKiwifyEvent(json: unknown): KiwifyEvent | null {
     orderStatus,
     productId: str(product.product_id) ?? str(product.id) ?? str(json.product_id),
     email: email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email.toLowerCase() : null,
-    userHint: sck && UUID.test(sck) ? sck.toLowerCase() : null,
+    userHint: accountFromToken(tracking.sck, linkSecret),
   };
 }
 
@@ -115,7 +118,7 @@ export async function handleKiwifyWebhook(input: { rawBody: string; signature: s
   } catch {
     return { status: 400, body: { ok: false, error: "JSON inválido" } };
   }
-  const event = parseKiwifyEvent(json);
+  const event = parseKiwifyEvent(json, config.linkSecret);
   if (!event) return { status: 400, body: { ok: false, error: "evento sem order_id/status" } };
   const action = kiwifyAction(event);
   if (action === "ignore") return { status: 200, body: { ok: true, outcome: "ignored" } };
