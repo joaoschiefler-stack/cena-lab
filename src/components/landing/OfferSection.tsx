@@ -1,8 +1,8 @@
 import { ArrowRight, Check, Minus, Plus } from "lucide-react";
 import Link from "next/link";
-import { PurchaseCta } from "@/components/plans/PlansView";
-import { ViewerSwitch } from "@/components/site/ViewerSwitch";
-import { buttonClass } from "@/components/ui/Button";
+import { Suspense } from "react";
+import { PurchaseCta } from "@/components/plans/PurchaseCta";
+import { ViewerPurchaseCta } from "@/components/plans/ViewerPurchaseCta";
 import { LogoMark } from "@/components/ui/Logo";
 import { FEATURE_GROUPS, FOUNDER_PLAN, NOT_INCLUDED, PLAN_FAQ, PLAN_SPECS } from "@/data/plans";
 import type { SalesConfig } from "@/lib/sales-config";
@@ -94,18 +94,9 @@ export function OfferSection({ sales }: { sales: SalesConfig }) {
               ))}
             </ul>
 
-            <ViewerSwitch
-              fallback={<PurchaseCta sales={sales} tone="dark" className="mt-8" />}
-              active={
-                <div className="mt-8" data-cta="owned">
-                  <p className="text-center text-sm font-semibold text-white">Você já tem o acesso fundador.</p>
-                  <Link href="/app" className={buttonClass("accent", "lg", "mt-3 w-full")}>
-                    Ir para meu painel
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </div>
-              }
-            />
+            <Suspense fallback={<PurchaseCta sales={sales} tone="dark" className="mt-8" />}>
+              <ViewerPurchaseCta sales={sales} tone="dark" className="mt-8" />
+            </Suspense>
             <Link
               href="/planos"
               className="mt-4 inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-cobalt underline-offset-4 hover:underline"

@@ -11,18 +11,28 @@ import { navLinks } from "@/lib/site";
 /** Quem está vendo, já verificado no servidor: visitante, conta sem licença ou licença ativa. */
 export type HeaderViewer = "guest" | "member" | "licensed";
 
-export function SiteHeader({ hasVideos, viewer = "guest" }: { hasVideos: boolean; viewer?: HeaderViewer }) {
+export function SiteHeader({ hasVideos, viewer = "guest", salesOpen = false }: { hasVideos: boolean; viewer?: HeaderViewer; salesOpen?: boolean }) {
   const pathname = usePathname();
   const links = navLinks(hasVideos);
   const [open, setOpen] = useState(false);
   const account = viewer === "guest" ? { href: "/login", label: "Entrar" } : { href: "/conta", label: "Minha conta" };
   // Quem já tem licença vai para o painel, sem ser convidado a comprar de novo.
-  const cta = viewer === "licensed" ? { href: "/app", short: "Meu painel", long: "Meu painel" } : { href: "/studio", short: "Criar história", long: "Criar minha história" };
+  // Conta sem licença é convidada ao plano (no pré-lançamento, sinalizando que a compra
+  // ainda não abriu); visitante conhece o estúdio.
+  const cta =
+    viewer === "licensed"
+      ? { href: "/app", short: "Meu painel", long: "Meu painel" }
+      : viewer === "member"
+        ? salesOpen
+          ? { href: "/planos", short: "Acesso fundador", long: "Garantir acesso fundador" }
+          : { href: "/planos", short: "Fundador: em breve", long: "Acesso fundador · em breve" }
+        : { href: "/studio", short: "Criar história", long: "Criar minha história" };
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/80 bg-base/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-        <Logo />
+        {/* Painel para quem tem licença; landing para os demais. Navegar não encerra a sessão. */}
+        <Logo href={viewer === "licensed" ? "/app" : "/"} />
 
         <nav aria-label="Principal" className="hidden items-center gap-1 md:flex">
           {links.map((link) => {

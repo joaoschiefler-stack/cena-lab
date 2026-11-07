@@ -31,7 +31,7 @@ export const ACCESS_LABELS: Record<AccessStatus, string> = {
   unconfigured: "Contas ainda não configuradas",
   anonymous: "Sem login",
   no_license: "Sem plano ativo",
-  active: "Licença ativa",
+  active: "Acesso fundador ativo",
   revoked: "Licença revogada",
   error: "Não foi possível verificar",
 };

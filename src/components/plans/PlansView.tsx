@@ -1,54 +1,17 @@
-import { ArrowRight, Check, Clock, ExternalLink, Minus } from "lucide-react";
-import Link from "next/link";
+import { ArrowRight, Check, Minus } from "lucide-react";
+import { Suspense } from "react";
 import { Faq } from "@/components/site/Faq";
-import { ButtonLink, buttonClass } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/Logo";
 import { FEATURE_GROUPS, FOUNDER_PLAN, NOT_INCLUDED, PLAN_FAQ, PLAN_SPECS, PLAN_STEPS } from "@/data/plans";
 import type { SalesConfig } from "@/lib/sales-config";
+import { PurchaseCta } from "./PurchaseCta";
+import { ViewerPurchaseCta } from "./ViewerPurchaseCta";
+
+export { PurchaseCta };
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-brand">{children}</p>;
-}
-
-/**
- * CTA de compra: "Em breve" no pré-lançamento; link real só com vendas abertas no servidor.
- * `tone="dark"` é a versão para a seção escura da homepage (mesma lógica).
- */
-export function PurchaseCta({ sales, className = "", tone = "light" }: { sales: SalesConfig; className?: string; tone?: "light" | "dark" }) {
-  const dark = tone === "dark";
-  if (sales.canSell && sales.checkoutUrl) {
-    return (
-      <a
-        href={sales.checkoutUrl}
-        rel="noopener"
-        className={buttonClass(dark ? "accent" : "primary", "lg", `w-full ${className}`)}
-        data-cta="checkout"
-      >
-        Comprar acesso fundador
-        <ExternalLink className="h-4 w-4" aria-hidden="true" />
-      </a>
-    );
-  }
-  return (
-    <div className={className} data-cta="prelaunch">
-      <p
-        role="status"
-        className={`flex h-13 w-full items-center justify-center gap-2 rounded-full border border-dashed px-7 font-semibold ${
-          dark ? "border-white/35 bg-white/5 text-white" : "border-brand/50 bg-brand-soft text-brand"
-        }`}
-      >
-        <Clock className="h-4 w-4" aria-hidden="true" />
-        Em breve
-      </p>
-      <p className={`mt-3 text-center text-sm leading-relaxed ${dark ? "text-white/70" : "text-muted"}`}>
-        As vendas ainda não abriram. Enquanto isso, você pode conhecer o{" "}
-        <Link href="/studio" className={`font-semibold underline-offset-4 hover:underline ${dark ? "text-pink" : "text-brand"}`}>
-          estúdio
-        </Link>{" "}
-        e todas as opções dele.
-      </p>
-    </div>
-  );
 }
 
 export function PlansView({ sales }: { sales: SalesConfig }) {
@@ -117,7 +80,9 @@ export function PlansView({ sales }: { sales: SalesConfig }) {
                 </li>
               ))}
             </ul>
-            <PurchaseCta sales={sales} className="mt-8" />
+            <Suspense fallback={<PurchaseCta sales={sales} className="mt-8" />}>
+              <ViewerPurchaseCta sales={sales} className="mt-8" />
+            </Suspense>
           </div>
         </article>
       </section>

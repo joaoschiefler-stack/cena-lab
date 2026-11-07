@@ -163,7 +163,8 @@ describe("9–10. acesso direto e caminhos antigos", () => {
 
   it("10. nenhuma rota (route.ts) gera prompt: o único endpoint de geração é a Server Action protegida", () => {
     const routes = appFiles("src/app").filter((f) => /route\.(ts|tsx)$/.test(f));
-    expect(routes.map((r) => r.replace(/\\/g, "/"))).toEqual(["src/app/auth/confirm/route.ts"]);
+    // As duas rotas existentes não geram: confirmação de e-mail e webhook de pagamento.
+    expect(routes.map((r) => r.replace(/\\/g, "/")).sort()).toEqual(["src/app/api/webhooks/kiwify/route.ts", "src/app/auth/confirm/route.ts"]);
     for (const r of routes) expect(readFileSync(r, "utf8")).not.toMatch(/@\/lib\/(engine|generation)/);
   });
   it("10b. não sobrou nenhum caminho que gere no navegador", () => {
@@ -172,7 +173,8 @@ describe("9–10. acesso direto e caminhos antigos", () => {
     // Toda exportação da Server Action passa pelo núcleo que exige licença (ou é a prévia pública).
     expect(actions).toMatch(/generateForRequest\(deps, config\)/);
     expect(actions).toMatch(/factsForRequest\(deps, config\)/);
-    expect(existsSync("src/app/api")).toBe(false);
+    // A única rota de API é o webhook da Kiwify, que não toca o gerador.
+    expect(appFiles("src/app/api").map((r) => r.replace(/\\/g, "/"))).toEqual(["src/app/api/webhooks/kiwify/route.ts"]);
   });
 });
 

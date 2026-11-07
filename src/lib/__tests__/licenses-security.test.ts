@@ -71,6 +71,21 @@ describe("migration de perfis e licenças", () => {
   });
 });
 
+describe("migration de compras", () => {
+  it("eventos de compra sem acesso de cliente; função só para o servidor", () => {
+    expect(sql).toContain("alter table public.purchase_events enable row level security");
+    expect(sql).toMatch(/revoke all on public\.purchase_events from anon, authenticated/);
+    expect(sql).toMatch(/revoke execute on function public\.apply_purchase_event\([^)]*\) from public, anon, authenticated/);
+    expect(sql).toMatch(/grant execute on function public\.apply_purchase_event\([^)]*\) to service_role/);
+    expect(sql).toMatch(/constraint purchase_events_once unique \(provider, order_id, event_type\)/);
+  });
+  it("pago depois de reembolso não reativa; sem conta confirmada não cria acesso", () => {
+    expect(sql).toContain("ignored_after_refund");
+    expect(sql).toContain("unmatched");
+    expect(sql).toMatch(/email_confirmed_at is not null/);
+  });
+});
+
 describe("código do app", () => {
   it("nunca escreve na tabela de licenças", () => {
     for (const [file, src] of appSource) {
@@ -79,8 +94,12 @@ describe("código do app", () => {
     }
   });
 
-  it("não usa service_role nem chaves secretas", () => {
+  it("não usa service_role nem chaves secretas (exceto o cliente administrativo do webhook)", () => {
+    // Exceção única e documentada: o webhook de pagamento chama a função do banco com a chave
+    // secreta. O teste commercial-flow garante que só a rota do webhook importa esse cliente.
+    const allowed = ["src/lib/supabase/admin.ts", "src/lib/kiwify/webhook.ts"];
     for (const [file, src] of appSource) {
+      if (allowed.includes(file.replace(/\\/g, "/"))) continue;
       expect(src, file).not.toMatch(/service_role|SUPABASE_SERVICE|SUPABASE_SECRET|sb_secret_/i);
     }
   });

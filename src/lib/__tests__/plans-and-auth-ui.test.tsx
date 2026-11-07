@@ -52,11 +52,12 @@ describe("página de planos", () => {
     expect(html).not.toContain('data-cta="checkout"');
   });
 
-  it("vendas abertas no servidor usam a URL configurada", () => {
+  it("vendas abertas no servidor: cadastro antes do checkout (o link de pagamento só sai ligado a uma conta)", () => {
     const html = renderToStaticMarkup(
       <PlansView sales={parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc" })} />,
     );
-    expect(html).toContain('href="https://pagamento.exemplo/abc"');
+    expect(html).toContain('data-cta="signup-first"');
+    expect(html).not.toContain("pagamento.exemplo");
     expect(html).not.toContain('data-cta="prelaunch"');
   });
 
@@ -104,7 +105,7 @@ describe("área da conta", () => {
   it("Supabase não configurado: sem dados inventados", () => {
     const t = render({ status: "unconfigured", user: null, license: null });
     expect(t).toContain("Contas em configuração.");
-    expect(t).not.toContain("Licença ativa");
+    expect(t).not.toContain("Acesso fundador ativo");
   });
 
   it("autenticado sem licença", () => {
@@ -112,21 +113,32 @@ describe("área da conta", () => {
     expect(t).toContain("ana@exemplo.com");
     expect(t).toContain("Sem plano ativo");
     expect(t).toContain("Nenhum plano adquirido");
-    expect(t).toContain("Abrir o estúdio");
+    expect(t).toContain("ainda não tem acesso premium");
+    expect(t).toContain("Ver plano fundador");
     expect(t).toContain("Sair");
+    // Não parece comprador: nada de estúdio, painel ou "ativo".
+    expect(t).not.toContain("Abrir o estúdio");
+    expect(t).not.toContain("Ir para meu painel");
+    expect(t).not.toContain("Acesso fundador ativo");
   });
 
   it("licença ativa", () => {
     const t = render({ status: "active", user, license: { plan: "fundador", status: "active", granted_at: "2026-11-01T12:00:00Z", revoked_at: null } });
-    expect(t).toContain("Licença ativa");
+    expect(t).toContain("Acesso fundador ativo");
     expect(t).toContain("CENA LAB Fundador");
     expect(t).toContain("Ativa desde");
+    expect(t).toContain("Ir para meu painel");
+    expect(t).toContain("Alterar senha");
+    expect(t).toContain("Sair");
+    expect(t).not.toContain("Ver plano fundador");
   });
 
   it("licença revogada", () => {
     const t = render({ status: "revoked", user, license: { plan: "fundador", status: "revoked", granted_at: null, revoked_at: "2026-11-02T12:00:00Z" } });
     expect(t).toContain("Licença revogada");
     expect(t).toContain("Revogada em");
+    expect(t).not.toContain("Ir para meu painel");
+    expect(t).toContain("Sair");
   });
 
   it("não diz mais que o estúdio gera para todos (o gerador agora exige licença)", () => {

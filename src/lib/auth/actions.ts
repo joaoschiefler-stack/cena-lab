@@ -2,13 +2,16 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getAccess } from "@/lib/access";
 import { SITE } from "@/lib/site";
+import { destinationAfterAuth } from "./destination";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   performLogin,
   performPasswordUpdate,
   performResetRequest,
   performSignup,
+  readField,
 } from "./forms";
 import type { AuthClient, AuthFormState } from "./forms";
 
@@ -28,7 +31,11 @@ async function client(): Promise<AuthClient | null> {
 // O login é validado e a sessão gravada em cookies no servidor; o redirect também acontece aqui.
 export async function loginAction(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
   const state = await performLogin(await client(), form);
-  if (state.status === "success" && state.redirectTo) redirect(state.redirectTo);
+  if (state.status === "success") {
+    // Sem destino pedido, a licença verificada no servidor decide: painel ou conta.
+    const next = readField(form, "next");
+    redirect(next ? (state.redirectTo ?? "/app") : destinationAfterAuth(null, (await getAccess()).status));
+  }
   return state;
 }
 

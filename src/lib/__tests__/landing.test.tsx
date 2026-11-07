@@ -104,11 +104,12 @@ describe("seção de oferta", () => {
     expect(html).not.toContain('data-cta="checkout"');
   });
 
-  it("vendas abertas no servidor: CTA leva à URL configurada", () => {
+  it("vendas abertas no servidor: visitante cria a conta antes; o link do checkout só sai ligado a uma conta", () => {
     const sales = parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: "https://pagamento.exemplo/abc" });
     const html = renderToStaticMarkup(<OfferSection sales={sales} />);
-    expect(html).toContain('href="https://pagamento.exemplo/abc"');
-    expect(html).toContain('data-cta="checkout"');
+    expect(html).toContain('data-cta="signup-first"');
+    expect(html).toContain('href="/cadastro"');
+    expect(html).not.toContain("pagamento.exemplo");
   });
 });
 

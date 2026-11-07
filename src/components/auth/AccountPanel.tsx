@@ -103,12 +103,9 @@ export function AccountPanel({
         <p className="text-sm leading-relaxed text-muted">Esta licença foi revogada (por exemplo, após reembolso ou contestação do pagamento).</p>
       )}
       {access.status === "no_license" && (
-        <p className="text-sm leading-relaxed text-muted">
-          Você ainda não tem um plano.{" "}
-          <Link href="/planos" className="font-semibold text-brand underline-offset-4 hover:underline">
-            Conheça o CENA LAB Fundador
-          </Link>
-          .
+        <p className="rounded-2xl border border-line bg-raised px-4 py-3 text-sm leading-relaxed text-fg" data-account-no-access>
+          Sua conta ainda não tem acesso premium: a geração de prompts fica liberada depois da compra do{" "}
+          <span className="font-semibold">CENA LAB Fundador</span>.
         </p>
       )}
       {!PREMIUM_GENERATION_ENFORCED && (
@@ -119,16 +116,16 @@ export function AccountPanel({
 
       <div className="flex flex-col gap-3 sm:flex-row">
         {access.status === "active" ? (
-          <ButtonLink href="/app" size="lg" className="flex-1">
-            Abrir meu painel
+          <ButtonLink href="/app" size="lg" className="flex-1" data-account-cta="painel">
+            Ir para meu painel
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </ButtonLink>
-        ) : (
-          <ButtonLink href="/studio" size="lg" className="flex-1">
-            Abrir o estúdio
+        ) : access.status === "no_license" || access.status === "revoked" ? (
+          <ButtonLink href="/planos" size="lg" className="flex-1" data-account-cta="planos">
+            Ver plano fundador
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </ButtonLink>
-        )}
+        ) : null}
         <form action={logoutAction} className="sm:w-auto">
           <Button type="submit" variant="secondary" size="lg" className="w-full">
             <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -136,6 +133,13 @@ export function AccountPanel({
           </Button>
         </form>
       </div>
+      {access.status === "active" && (
+        <p className="text-sm text-muted">
+          <Link href="/redefinir-senha" className="font-semibold text-brand underline-offset-4 hover:underline">
+            Alterar senha
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

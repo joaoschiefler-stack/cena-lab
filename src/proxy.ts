@@ -5,8 +5,9 @@ export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
-// Renova a sessão nas rotas de conta e no painel. No site público, a sessão só é lida
-// quando existe cookie do Supabase (lib/viewer.ts).
+// Renova a sessão em todas as páginas quando há cookie do Supabase (o cabeçalho público
+// não mostra "Entrar" para quem está logado depois que o token de acesso expira).
+// Fora: arquivos estáticos, imagens, vídeos e a API (o webhook não usa sessão).
 export const config = {
-  matcher: ["/app/:path*", "/conta/:path*", "/login", "/cadastro", "/recuperar-senha", "/redefinir-senha", "/auth/:path*"],
+  matcher: ["/((?!_next/static|_next/image|api/|videos/|favicon|icon|apple-icon|opengraph-image|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|svg|webp|mp4|woff2?)$).*)"],
 };

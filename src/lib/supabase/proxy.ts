@@ -7,6 +7,9 @@ import { supabaseConfig } from "./config";
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!supabaseConfig) return response;
+  const isDashboard = request.nextUrl.pathname === "/app" || request.nextUrl.pathname.startsWith("/app/");
+  // Sem cookie de sessão não há o que renovar: visitantes não pagam a consulta.
+  if (!isDashboard && !request.cookies.getAll().some((c) => c.name.startsWith("sb-"))) return response;
 
   const supabase = createServerClient(supabaseConfig.url, supabaseConfig.publishableKey, {
     cookies: {
@@ -26,7 +29,7 @@ export async function updateSession(request: NextRequest) {
 
   // Painel sem sessão válida: redireciona já aqui (HTTP 307), antes de renderizar.
   // A licença continua sendo conferida na página, com getUser + tabela licenses.
-  if (!data?.claims && (request.nextUrl.pathname === "/app" || request.nextUrl.pathname.startsWith("/app/"))) {
+  if (!data?.claims && isDashboard) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     login.search = `?next=${encodeURIComponent(request.nextUrl.pathname)}`;

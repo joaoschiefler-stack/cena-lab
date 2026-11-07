@@ -61,7 +61,7 @@ export function GenerationNotice({ problem }: { problem: GenerationProblem }) {
           )}
           {problem !== "revoked" && (
             <ButtonLink href="/planos" size="sm" variant={problem === "login_required" ? "secondary" : "primary"}>
-              Ver planos
+              {problem === "no_license" ? "Garantir acesso fundador" : "Ver planos"}
             </ButtonLink>
           )}
           {problem !== "login_required" && (
