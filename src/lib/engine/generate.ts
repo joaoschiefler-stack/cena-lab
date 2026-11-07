@@ -16,6 +16,11 @@ import { buildVisualDirection } from "./sections/visual";
 import { complementaryColor, countWords, deriveTitle, pick, slugify, stableHash } from "./text";
 import { adaptStoryType, resolveChallenge, resolveProgression } from "./progression";
 import { buildTimingPlan } from "./timing";
+import { buildTimingPlanV2 } from "./v2/timing";
+import {
+  PROMPT_V2_TAG, buildAnimationV2, buildCharactersV2, buildDecisionV2, buildNarrativeV2, buildObjectiveV2,
+  buildQualityV2, buildSpeechV2, buildStoryboardV2, buildTechnicalV2, buildVisualV2,
+} from "./v2/sections";
 import type {
   GeneratedPrompt,
   IdeaAnalysis,
@@ -32,6 +37,13 @@ export { isEpisodic, isInteractive };
 
 export class InvalidConfigError extends Error {}
 
+/**
+ * Versão do prompt mestre. A V1 fica preservada byte a byte (testes de
+ * equivalência); a V2 é a que o produto gera (veja docs/PROMPT_V2.md).
+ */
+export type PromptVersion = "v1" | "v2";
+export const CURRENT_PROMPT_VERSION: PromptVersion = "v2";
+
 /** Tempo da história: prazo do desafio, período do vídeo e preset narrativo adaptado a ele. */
 function resolveTime(config: StudioConfig, analysis: IdeaAnalysis) {
   const challenge = resolveChallenge(config, analysis);
@@ -40,9 +52,9 @@ function resolveTime(config: StudioConfig, analysis: IdeaAnalysis) {
   return { challenge, progression, storyType };
 }
 
-function timingFor(config: StudioConfig, storyType: StoryTypePreset): TimingPlan {
+function timingFor(config: StudioConfig, storyType: StoryTypePreset, version: PromptVersion = "v1"): TimingPlan {
   const interactive = isInteractive(config);
-  return buildTimingPlan({
+  return (version === "v2" ? buildTimingPlanV2 : buildTimingPlan)({
     duration: config.duration,
     pacing: PACINGS[config.pacing],
     tone: TONES[config.tone],
@@ -54,13 +66,13 @@ function timingFor(config: StudioConfig, storyType: StoryTypePreset): TimingPlan
 }
 
 /** Plano de tempo resolvido a partir da configuração (usado também pela prévia do estúdio). */
-export function planForConfig(input: StudioConfig): TimingPlan {
+export function planForConfig(input: StudioConfig, version: PromptVersion = "v1"): TimingPlan {
   const config = normalizeConfig(input);
-  return timingFor(config, resolveTime(config, analyzeIdea(config.idea)).storyType);
+  return timingFor(config, resolveTime(config, analyzeIdea(config.idea)).storyType, version);
 }
 
 /** Resolve presets, variação criativa e plano de tempo a partir da configuração. */
-export function buildContext(input: StudioConfig): PromptContext {
+export function buildContext(input: StudioConfig, version: PromptVersion = "v1"): PromptContext {
   const config = normalizeConfig(input);
   const style = STYLES[config.style];
   const tone = TONES[config.tone];
@@ -97,7 +109,7 @@ export function buildContext(input: StudioConfig): PromptContext {
     hook: hookInstruction,
     motif: pick(tone.motifs, (seed >>> 5) + v * 2),
     analysis,
-    plan: timingFor(config, storyType),
+    plan: timingFor(config, storyType, version),
     interactive,
     episodeNumber: config.series?.episodeNumber ?? 1,
     episodic: isEpisodic(config),
@@ -124,24 +136,41 @@ const SECTION_BUILDERS: ((ctx: PromptContext) => PromptSection | null)[] = [
   buildExtraInstructions, //       instruções do criador (opcional)
 ];
 
-export function renderPrompt(ctx: PromptContext, sections: PromptSection[]): string {
+/** Seções da V2 (mesma numeração; a 2 e as instruções do criador vêm da V1). */
+const SECTION_BUILDERS_V2: ((ctx: PromptContext) => PromptSection | null)[] = [
+  buildObjectiveV2,
+  buildFormat,
+  buildVisualV2,
+  buildCharactersV2,
+  buildNarrativeV2,
+  buildStoryboardV2,
+  buildAnimationV2,
+  buildSpeechV2,
+  buildDecisionV2,
+  buildTechnicalV2,
+  buildQualityV2,
+  buildExtraInstructions,
+];
+
+export function renderPrompt(ctx: PromptContext, sections: PromptSection[], version: PromptVersion = "v1"): string {
   const episode = ctx.episodic ? ` · Ep. ${ctx.episodeNumber}` : "";
-  const header = `# Prompt mestre — "${ctx.title}"${episode}\n_${ctx.style.name} · ${ctx.tone.name} · ${ctx.plan.durationSec}s · 9:16 · ${ctx.format.name} · ${ctx.mode.name}_`;
+  const tag = version === "v2" ? ` · ${PROMPT_V2_TAG}` : "";
+  const header = `# Prompt mestre — "${ctx.title}"${episode}\n_${ctx.style.name} · ${ctx.tone.name} · ${ctx.plan.durationSec}s · 9:16 · ${ctx.format.name} · ${ctx.mode.name}${tag}_`;
   const body = sections.map((s, i) => `## ${i + 1}. ${s.title}\n\n${s.body}`).join("\n\n");
   const footer = `---\n\nComece agora pela ficha de produção e siga até a **implementação completa e executável** da animação.`;
   return `${header}\n\n${body}\n\n${footer}\n`;
 }
 
-export function generateMasterPrompt(input: StudioConfig): GeneratedPrompt {
+export function generateMasterPrompt(input: StudioConfig, version: PromptVersion = "v1"): GeneratedPrompt {
   const errors = validateConfig(input);
   if (Object.keys(errors).length) {
     throw new InvalidConfigError(Object.values(errors).join(" "));
   }
-  const ctx = buildContext(input);
-  const sections = SECTION_BUILDERS.map((build) => build(ctx)).filter(
+  const ctx = buildContext(input, version);
+  const sections = (version === "v2" ? SECTION_BUILDERS_V2 : SECTION_BUILDERS).map((build) => build(ctx)).filter(
     (s): s is PromptSection => s !== null,
   );
-  const prompt = renderPrompt(ctx, sections);
+  const prompt = renderPrompt(ctx, sections, version);
   return {
     prompt,
     sections,

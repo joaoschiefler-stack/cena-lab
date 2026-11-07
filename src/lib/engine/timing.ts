@@ -16,7 +16,7 @@ import type {
  * frames inteiros a 30 fps; a soma dos trechos é exatamente a duração.
  */
 
-interface BeatTemplate {
+export interface BeatTemplate {
   key: string;
   name: string;
   purpose: string;
@@ -51,7 +51,7 @@ const LONG: BeatTemplate[] = [
   { key: "escalada", name: "Escalada", purpose: "O risco aumenta e o plano anterior deixa de servir; o protagonista precisa reconsiderar sob mais pressão.", weight: 13 },
 ];
 
-function templatesFor(duration: DurationSec): BeatTemplate[] {
+export function templatesFor(duration: DurationSec): BeatTemplate[] {
   if (duration <= 15) return COMPACT;
   if (duration <= 30) return STANDARD;
   return LONG;

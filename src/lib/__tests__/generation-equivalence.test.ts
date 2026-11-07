@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Access } from "@/lib/access-state";
 import { toPlanPreview } from "@/lib/catalog";
-import { planForConfig } from "@/lib/engine";
+import { CURRENT_PROMPT_VERSION, planForConfig } from "@/lib/engine";
 import { factsForRequest, generateForRequest, previewForRequest } from "@/lib/generation/service";
 import type { AuthDeps } from "@/lib/generation/service";
 import { draftFromRecord, draftFromResult, pendingEpisodeConfig, recordFromDraft } from "@/lib/series-draft";
@@ -15,6 +15,8 @@ import { equivalenceCases } from "./fixtures/equivalence-cases";
  * pre-protecao-gerador), antes de qualquer mudança desta etapa. Aqui cada
  * caso passa pelo caminho novo inteiro: serialização como a Server Action
  * faz, validação estrita, autorização (simulada como licença ativa) e engine.
+ * Desde a V2 do prompt, estes casos pedem a V1 explicitamente: a V1 continua
+ * idêntica byte a byte; a V2 tem testes próprios (prompt-v2.test.ts).
  */
 
 const baseline = JSON.parse(readFileSync("src/lib/__tests__/fixtures/engine-baseline.json", "utf8")) as {
@@ -47,7 +49,7 @@ describe("equivalência do prompt: navegador (antes) × servidor (agora)", () =>
 
   for (const { name, config } of cases) {
     it(`${name}: mesmo prompt, mesmas seções, mesmo plano`, async () => {
-      const reply = await generateForRequest(licensed, wire(config));
+      const reply = await generateForRequest(licensed, wire(config), "v1");
       if (!reply.ok) throw new Error(`recusado: ${reply.reason}`);
       const before = baseline.cases[name];
       expect(hash(reply.result.prompt)).toBe(before.prompt);
@@ -61,14 +63,14 @@ describe("equivalência do prompt: navegador (antes) × servidor (agora)", () =>
   for (const name of ["caso-a", "caso-b", "caso-c"]) {
     it(`${name}: texto completo idêntico ao de antes`, async () => {
       const config = cases.find((c) => c.name === name)!.config;
-      const reply = await generateForRequest(licensed, wire(config));
+      const reply = await generateForRequest(licensed, wire(config), "v1");
       expect(reply.ok && reply.result.prompt).toBe(baseline.full[name]);
     });
   }
 
   it("caso A tem o final A/B, caso B a contagem de um dia por episódio, caso C nenhuma enquete", async () => {
     const get = async (n: string) => {
-      const r = await generateForRequest(licensed, wire(cases.find((c) => c.name === n)!.config));
+      const r = await generateForRequest(licensed, wire(cases.find((c) => c.name === n)!.config), "v1");
       if (!r.ok) throw new Error(r.reason);
       return r.result;
     };
@@ -87,7 +89,7 @@ describe("equivalência do prompt: navegador (antes) × servidor (agora)", () =>
 describe("equivalência da ficha de continuidade (dados agora vindos do servidor)", () => {
   for (const { name, config } of cases) {
     it(`${name}: rascunho do episódio seguinte igual ao de antes`, async () => {
-      const reply = await generateForRequest(licensed, wire(config));
+      const reply = await generateForRequest(licensed, wire(config), "v1");
       if (!reply.ok) throw new Error(reply.reason);
       const draft = draftFromResult(config, reply.result.title, null, reply.facts);
       expect(hash(draft)).toBe(baseline.cases[name].draft);
@@ -106,10 +108,11 @@ describe("equivalência da ficha de continuidade (dados agora vindos do servidor
 });
 
 describe("prévia pública da linha do tempo", () => {
-  it("mesmos trechos e números do plano real, sem a função narrativa", () => {
+  it("mesmos trechos e números do plano real (versão atual do prompt), sem a função narrativa", () => {
     for (const { config } of cases.slice(0, 12)) {
       const preview = previewForRequest(wire(config))!;
-      expect(preview).toEqual(toPlanPreview(planForConfig(config)));
+      expect(preview).toEqual(toPlanPreview(planForConfig(config, CURRENT_PROMPT_VERSION)));
+      expect(previewForRequest(wire(config), "v1")).toEqual(toPlanPreview(planForConfig(config)));
       expect(JSON.stringify(preview)).not.toContain("purpose");
     }
   });

@@ -24,7 +24,7 @@ export const BANNED_OPENINGS = [
 ];
 
 /** Mecanismos de microgancho: o Claude escolhe os que servem à história. */
-const MICROHOOKS = [
+export const MICROHOOKS = [
   "algo inesperado acontece enquanto o personagem age",
   "uma solução revela outro problema",
   "uma regra é estabelecida e depois colocada à prova",
@@ -41,7 +41,7 @@ function beatEnd(ctx: PromptContext, key: string): string {
   return formatSeconds(beat.endFrame / plan.fps);
 }
 
-function ideaReading(ctx: PromptContext): string[] {
+export function ideaReading(ctx: PromptContext): string[] {
   const { analysis, config } = ctx;
   const lines: string[] = [];
 

@@ -16,14 +16,14 @@ export const CHOICE_CRITERIA = [
 ];
 
 /** Exemplo de formato (não de conteúdo) para mostrar o que dá peso a um dilema. */
-const CHOICE_EXAMPLE = [
+export const CHOICE_EXAMPLE = [
   "Exemplo de formato — **não reutilize este dilema**; crie o seu a partir do conflito desta história:",
   "- Fraco: \"A — Contar para a amiga\" / \"B — Seguir o estranho\" (sem custo claro, nenhuma opção parece importar).",
   "- Forte: \"A — Avisar a amiga e revelar onde está\" / \"B — Ficar escondido e deixá-la entrar sozinha\" (cada opção salva uma coisa e arrisca outra).",
 ].join("\n");
 
 /** Como dar peso à decisão dentro da história (vale para decisão automática e personalizada). */
-const DILEMMA_SETUP =
+export const DILEMMA_SETUP =
   "Na cena de dilema (antes do quadro), deixe claro o que cada opção protege e o que arrisca — por imagem, objeto ou fala curta — sem mostrar o resultado.";
 
 /** 9. Final interativo A/B (só quando ativado). */

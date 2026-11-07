@@ -1,7 +1,7 @@
 import "server-only";
 import { DEFAULT_CONFIG, DURATIONS, FORMATS, STYLES, toPlanPreview } from "@/lib/catalog";
 import type { DurationSec, PlanPreview, StoryFormat, StyleId } from "@/lib/catalog";
-import { generateMasterPrompt } from "@/lib/engine";
+import { CURRENT_PROMPT_VERSION, generateMasterPrompt } from "@/lib/engine";
 import { studioHref } from "@/lib/studio-link";
 
 /**
@@ -33,7 +33,7 @@ export function buildDemoVariants(idea = DEMO_IDEA): DemoVariant[] {
   for (const format of Object.keys(FORMATS) as StoryFormat[]) {
     for (const style of Object.keys(STYLES) as StyleId[]) {
       for (const duration of DURATIONS) {
-        const result = generateMasterPrompt({ ...DEFAULT_CONFIG, idea, format, style, duration, tone: "humor", storyType: "desafio" });
+        const result = generateMasterPrompt({ ...DEFAULT_CONFIG, idea, format, style, duration, tone: "humor", storyType: "desafio" }, CURRENT_PROMPT_VERSION);
         variants.push({
           key: `${format}-${style}-${duration}`,
           format,

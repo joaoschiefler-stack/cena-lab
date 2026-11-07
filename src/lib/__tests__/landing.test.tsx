@@ -5,7 +5,8 @@ import { FormatCards } from "@/components/landing/FormatCards";
 import { OfferSection } from "@/components/landing/OfferSection";
 import { HOME_FAQ } from "@/data/faq";
 import { FEATURE_GROUPS, FOUNDER_PLAN, NOT_INCLUDED } from "@/data/plans";
-import { DEFAULT_CONFIG, generateMasterPrompt } from "@/lib/engine";
+import { CURRENT_PROMPT_VERSION, DEFAULT_CONFIG, generateMasterPrompt } from "@/lib/engine";
+import { toPlanPreview } from "@/lib/catalog";
 import { DEMO_IDEA, buildDemoVariants } from "@/lib/landing-demo";
 import { parseSalesConfig } from "@/lib/sales-config";
 import { NAV_LINKS } from "@/lib/site";
@@ -152,9 +153,10 @@ describe("demonstração do estúdio", () => {
     expect(new Set(variants.map((v) => v.key)).size).toBe(variants.length);
   });
 
-  it("os números vêm do motor real", () => {
+  it("os números vêm do motor real, na versão que o produto gera", () => {
     for (const v of variants) {
-      const real = generateMasterPrompt({ ...DEFAULT_CONFIG, idea: DEMO_IDEA, format: v.format, style: v.style, duration: v.duration, tone: "humor", storyType: "desafio" });
+      const real = generateMasterPrompt({ ...DEFAULT_CONFIG, idea: DEMO_IDEA, format: v.format, style: v.style, duration: v.duration, tone: "humor", storyType: "desafio" }, CURRENT_PROMPT_VERSION);
+      expect(v.plan).toEqual(toPlanPreview(real.plan));
       expect(v.sections).toEqual(real.sections.map((s) => s.title));
       expect(v.words).toBe(real.wordCount);
       expect(v.plan.durationSec).toBe(v.duration);

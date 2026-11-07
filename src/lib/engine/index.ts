@@ -8,7 +8,9 @@ export {
   isInteractive,
   isEpisodic,
   InvalidConfigError,
+  CURRENT_PROMPT_VERSION,
 } from "./generate";
+export type { PromptVersion } from "./generate";
 export { resolveChallenge, resolveProgression, parseTimeSpan, progressionRelevant, knownEndDay } from "./progression";
 export { parseNarrationScript, narrationSpeechText, narrationSpeakers, narrationToTxt } from "./narration";
 export type { ParsedNarration, NarrationScene, NarrationLine } from "./narration";

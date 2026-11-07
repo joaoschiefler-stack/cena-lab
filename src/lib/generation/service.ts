@@ -2,7 +2,8 @@ import "server-only";
 import type { Access } from "@/lib/access-state";
 import type { ConfigErrors, GeneratedPrompt, PlanPreview, StudioConfig } from "@/lib/catalog";
 import { toPlanPreview, validateConfig } from "@/lib/catalog";
-import { buildContext, generateMasterPrompt, knownEndDay, planForConfig } from "@/lib/engine";
+import { CURRENT_PROMPT_VERSION, buildContext, generateMasterPrompt, knownEndDay, planForConfig } from "@/lib/engine";
+import type { PromptVersion } from "@/lib/engine";
 import { parseGenerationInput } from "./input";
 import type { InputProblem } from "./input";
 
@@ -78,11 +79,12 @@ async function guarded(deps: AuthDeps, raw: unknown): Promise<{ ok: true; config
   return sized;
 }
 
-export async function generateForRequest(deps: AuthDeps, raw: unknown): Promise<GenerateResponse> {
+/** `version` existe para comparar com a V1 (testes); o produto usa sempre a versão atual. */
+export async function generateForRequest(deps: AuthDeps, raw: unknown, version: PromptVersion = CURRENT_PROMPT_VERSION): Promise<GenerateResponse> {
   const checked = await guarded(deps, raw);
   if (!checked.ok) return checked;
   try {
-    const result = generateMasterPrompt(checked.config);
+    const result = generateMasterPrompt(checked.config, version);
     return { ok: true, result, facts: continuationFacts(checked.config) };
   } catch (error) {
     console.error("[cena-lab] falha ao gerar prompt", error instanceof Error ? error.name : "erro");
@@ -117,11 +119,11 @@ export async function factsForRequest(deps: AuthDeps, raw: unknown): Promise<Fac
  * Prévia pública da linha do tempo (sem login): os mesmos números que a
  * homepage já mostra, sem a função narrativa de cada trecho.
  */
-export function previewForRequest(raw: unknown): PlanPreview | null {
+export function previewForRequest(raw: unknown, version: PromptVersion = CURRENT_PROMPT_VERSION): PlanPreview | null {
   const parsed = parseGenerationInput(raw);
   if (!parsed.ok) return null;
   try {
-    return toPlanPreview(planForConfig(parsed.config));
+    return toPlanPreview(planForConfig(parsed.config, version));
   } catch {
     return null;
   }
