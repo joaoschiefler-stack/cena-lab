@@ -1,0 +1,217 @@
+import { createHmac } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { describe, expect, it, vi } from "vitest";
+import { caktoAction, caktoConfig, caktoSignature, handleCaktoWebhook, parseCaktoOrder, verifyCaktoSignature } from "@/lib/cakto/webhook";
+import type { CaktoConfig, CaktoOrder } from "@/lib/cakto/webhook";
+import { checkoutUrlFor } from "@/lib/sales-config";
+
+/*
+ * Webhook da Cakto — TESTES COM SIMULAÇÃO (nada aqui fala com a Cakto nem com o
+ * Supabase real; o banco é substituído por uma função). A lógica do banco
+ * (idempotência, ordem, conta) é testada no Supabase real por
+ * supabase/tests/compras_simuladas.sql.
+ */
+
+const SECRET = "b3f1a9c2-7b4d-4a8e-9f01-2c6d5b8a4e37";
+const NOW = 1_762_455_715;
+const USER = "6f1d2c3b-4a5e-4f60-8a7b-9c0d1e2f3a4b";
+const PRODUCT = "cd287b31-d4b7-4e94-858a-96e05ce2f4a2";
+const CONFIG: CaktoConfig = { enabled: true, secret: SECRET, productId: PRODUCT, missing: [] };
+
+// Exemplo abreviado de purchase_approved da documentação (conceitos/webhooks), com o callback da conta.
+const order = (patch: Record<string, unknown> = {}) => ({
+  id: "b3df956e-1998-4322-b091-ac0c54f7b4ba",
+  refId: "4852F91",
+  status: "paid",
+  offer_type: "main",
+  customer: { id: 481920, name: "John Doe", email: "John.Doe@Example.com" },
+  product: { id: PRODUCT, short_id: "42bruPi", name: "CENA LAB Fundador", type: "unique" },
+  sck: null,
+  callback: USER,
+  ...patch,
+});
+const body = (event: string, data: unknown = order(), secret: string | undefined = SECRET) => JSON.stringify({ secret, event, data });
+const signed = (raw: string, secret = SECRET, ts = NOW) => ({ rawBody: raw, timestamp: String(ts), signature: caktoSignature(secret, String(ts), raw), nowSeconds: NOW });
+const applyOk = (outcome = "granted") => vi.fn<(e: string, o: CaktoOrder) => Promise<string>>(async () => outcome);
+
+describe("Cakto — autenticidade", () => {
+  it("assinatura = HMAC-SHA256 de `{timestamp}.{corpo cru}`, formato v1=<hex> (como no exemplo oficial em JavaScript)", () => {
+    const raw = body("purchase_approved");
+    const doc = createHmac("sha256", SECRET).update(`${NOW}.`).update(raw).digest("hex");
+    expect(caktoSignature(SECRET, String(NOW), raw)).toBe(`v1=${doc}`);
+    expect(verifyCaktoSignature({ ...signed(raw), secret: SECRET })).toBe(true);
+  });
+
+  it("evento falso: assinatura errada, ausente, de outro secret ou corpo alterado → recusado", () => {
+    const raw = body("purchase_approved");
+    const ok = signed(raw);
+    expect(verifyCaktoSignature({ ...ok, signature: `v1=${"0".repeat(64)}`, secret: SECRET })).toBe(false);
+    expect(verifyCaktoSignature({ ...ok, signature: null, secret: SECRET })).toBe(false);
+    expect(verifyCaktoSignature({ ...ok, timestamp: null, secret: SECRET })).toBe(false);
+    expect(verifyCaktoSignature({ ...signed(raw, "outro-secret-qualquer"), secret: SECRET })).toBe(false);
+    expect(verifyCaktoSignature({ ...ok, rawBody: raw.replace("paid", "paid "), secret: SECRET })).toBe(false);
+  });
+
+  it("entrega antiga (replay, mais de 5 min) → recusada; dentro da janela → aceita", () => {
+    const raw = body("purchase_approved");
+    expect(verifyCaktoSignature({ ...signed(raw, SECRET, NOW - 301), secret: SECRET })).toBe(false);
+    expect(verifyCaktoSignature({ ...signed(raw, SECRET, NOW + 301), secret: SECRET })).toBe(false);
+    expect(verifyCaktoSignature({ ...signed(raw, SECRET, NOW - 60), secret: SECRET })).toBe(true);
+  });
+
+  it("header com várias versões: só a v1 conta", () => {
+    const raw = body("purchase_approved");
+    const s = signed(raw);
+    expect(verifyCaktoSignature({ ...s, signature: `v2=abc, ${s.signature}`, secret: SECRET })).toBe(true);
+  });
+
+  it("desligada sem secret, produto ou chave do Supabase", () => {
+    expect(caktoConfig({}).enabled).toBe(false);
+    expect(caktoConfig({}).missing).toEqual(["CAKTO_WEBHOOK_SECRET", "CAKTO_PRODUCT_ID", "SUPABASE_SECRET_KEY"]);
+    expect(caktoConfig({ CAKTO_WEBHOOK_SECRET: SECRET, CAKTO_PRODUCT_ID: PRODUCT, SUPABASE_SECRET_KEY: "x" }).enabled).toBe(true);
+    expect(caktoConfig({ CAKTO_WEBHOOK_SECRET: "curto", CAKTO_PRODUCT_ID: PRODUCT, SUPABASE_SECRET_KEY: "x" }).enabled).toBe(false);
+  });
+});
+
+describe("Cakto — processamento", () => {
+  it("desligada → 503, nada aplicado", async () => {
+    const fn = applyOk();
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved")), config: { ...CONFIG, enabled: false }, apply: fn });
+    expect(r.status).toBe(503);
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  it("evento falso (assinatura inválida) → 401, nada aplicado — mesmo com secret certo no corpo", async () => {
+    const fn = applyOk();
+    const raw = body("purchase_approved");
+    const r = await handleCaktoWebhook({ rawBody: raw, timestamp: String(NOW), signature: `v1=${"f".repeat(64)}`, nowSeconds: NOW, config: CONFIG, apply: fn });
+    expect(r.status).toBe(401);
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  it("secret do corpo diferente do configurado → 401, mesmo com a assinatura certa", async () => {
+    const fn = applyOk();
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved", order(), "outro")), config: CONFIG, apply: fn });
+    expect(r.status).toBe(401);
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  it("compra aprovada do produto certo → aplica no pedido e na conta do checkout (callback)", async () => {
+    const fn = applyOk();
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved")), config: CONFIG, apply: fn });
+    expect(r).toEqual({ status: 200, body: { ok: true, outcome: "granted" } });
+    expect(fn).toHaveBeenCalledWith("purchase_approved", {
+      orderId: "b3df956e-1998-4322-b091-ac0c54f7b4ba",
+      orderStatus: "paid",
+      productId: PRODUCT,
+      productShortId: "42bruPi",
+      email: "john.doe@example.com",
+      userHint: USER,
+    });
+  });
+
+  it("o produto pode ser configurado pelo short_id do painel", async () => {
+    const fn = applyOk();
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved")), config: { ...CONFIG, productId: "42bruPi" }, apply: fn });
+    expect(r.body.outcome).toBe("granted");
+  });
+
+  it("purchase_approved sem status paid não concede", async () => {
+    const fn = applyOk();
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved", order({ status: "waiting_payment" }))), config: CONFIG, apply: fn });
+    expect(r.body.outcome).toBe("ignored");
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  it("outro produto (ou order bump de outro produto) não concede nem revoga", async () => {
+    for (const ev of ["purchase_approved", "refund", "chargeback"]) {
+      const fn = applyOk();
+      const r = await handleCaktoWebhook({ ...signed(body(ev, order({ product: { id: "outro", short_id: "xyz" } }))), config: CONFIG, apply: fn });
+      expect(r.body.outcome).toBe("other_product");
+      expect(fn).not.toHaveBeenCalled();
+    }
+  });
+
+  it("reembolso → revoga (status normalizado 'refunded')", async () => {
+    const fn = applyOk("revoked");
+    const r = await handleCaktoWebhook({ ...signed(body("refund", order({ status: "refunded" }))), config: CONFIG, apply: fn });
+    expect(r.body.outcome).toBe("revoked");
+    expect(fn.mock.calls[0][1].orderStatus).toBe("refunded");
+  });
+
+  it("chargeback → revoga, inclusive pré-chargeback e MED do Pix (status 'MED')", async () => {
+    for (const status of ["chargedback", "MED"]) {
+      const fn = applyOk("revoked");
+      const r = await handleCaktoWebhook({ ...signed(body("chargeback", order({ status }))), config: CONFIG, apply: fn });
+      expect(r.body.outcome).toBe("revoked");
+      expect(fn.mock.calls[0][1].orderStatus).toBe("chargedback");
+    }
+  });
+
+  it("duplicação: o banco responde 'duplicate' e a rota devolve 200", async () => {
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved")), config: CONFIG, apply: async () => "duplicate" });
+    expect(r).toEqual({ status: 200, body: { ok: true, outcome: "duplicate" } });
+  });
+
+  it("falha no banco → 500 (fica como falha no histórico da Cakto, para reenviar)", async () => {
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved")), config: CONFIG, apply: async () => { throw new Error("db"); } });
+    expect(r.status).toBe(500);
+  });
+
+  it("pendentes, recusado, pedido de reembolso na janela, abandono e assinatura → ignorados", async () => {
+    const cases: [string, unknown][] = [
+      ["pix_gerado", order({ status: "waiting_payment" })],
+      ["boleto_gerado", order({ status: "waiting_payment" })],
+      ["purchase_refused", order({ status: "refused" })],
+      ["refund_requested", order({ status: "refund_requested" })],
+      ["subscription_renewed", order()],
+      ["checkout_abandonment", { customerEmail: "a@b.com", product: { id: PRODUCT } }],
+    ];
+    for (const [ev, data] of cases) {
+      const fn = applyOk();
+      const r = await handleCaktoWebhook({ ...signed(body(ev, data)), config: CONFIG, apply: fn });
+      expect(r.body.outcome, ev).toBe("ignored");
+      expect(fn).not.toHaveBeenCalled();
+    }
+  });
+
+  it("webhook V2 (data em lista): aplica só o pedido do produto do CENA LAB", async () => {
+    const fn = applyOk();
+    const data = [order(), order({ id: "bump-1", offer_type: "orderbump", product: { id: "outro" } })];
+    const r = await handleCaktoWebhook({ ...signed(body("purchase_approved", data)), config: CONFIG, apply: fn });
+    expect(r.body.outcome).toBe("granted,other_product");
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it("JSON inválido, pedido sem id e corpo enorme são recusados", async () => {
+    expect((await handleCaktoWebhook({ ...signed("{"), config: CONFIG, apply: applyOk() })).status).toBe(400);
+    expect((await handleCaktoWebhook({ ...signed(body("purchase_approved", { status: "paid" })), config: CONFIG, apply: applyOk() })).status).toBe(400);
+    expect((await handleCaktoWebhook({ ...signed("x".repeat(300 * 1024)), config: CONFIG, apply: applyOk() })).status).toBe(413);
+  });
+});
+
+describe("Cakto — vínculo com a conta", () => {
+  it("callback (ou sck) só vale se for um UUID; e-mail não indica conta", () => {
+    expect(parseCaktoOrder("purchase_approved", order({ callback: "qualquer" }))!.userHint).toBeNull();
+    expect(parseCaktoOrder("purchase_approved", order({ callback: null, sck: USER }))!.userHint).toBe(USER);
+    expect(parseCaktoOrder("purchase_approved", order({ callback: null }))!.userHint).toBeNull();
+    expect(caktoAction("purchase_approved", "paid")).toBe("grant");
+    expect(caktoAction("refund", "refunded")).toBe("revoke");
+  });
+
+  it("o link do checkout leva o id da conta em callback e sck", () => {
+    const url = new URL(checkoutUrlFor("https://pay.cakto.com.br/abc123", USER));
+    expect(url.searchParams.get("callback")).toBe(USER);
+    expect(url.searchParams.get("sck")).toBe(USER);
+  });
+
+  it("no banco, só a conta indicada recebe a licença: sem vínculo por e-mail", () => {
+    const sql = readFileSync("supabase/migrations/20261108120000_cakto.sql", "utf8").toLowerCase();
+    const fn = sql.slice(sql.indexOf("create or replace function public.apply_purchase_event"));
+    expect(fn).not.toMatch(/lower\(u\.email\)/);
+    expect(fn).toMatch(/where u\.id = p_user_hint and u\.email_confirmed_at is not null/);
+    expect(sql).toMatch(/check \(provider in \('kiwify', 'cakto'\)\)/);
+    expect(sql).toMatch(/check \(source in \('kiwify', 'cakto', 'manual'\)\)/);
+    expect(fn).toMatch(/revoke execute on function public\.apply_purchase_event\([^)]*\) from public, anon, authenticated/);
+  });
+});

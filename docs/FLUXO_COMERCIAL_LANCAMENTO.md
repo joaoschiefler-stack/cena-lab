@@ -14,20 +14,23 @@ Vendas continuam em `PRELAUNCH` até todos os testes reais abaixo passarem.
 
 Tudo decidido no servidor (sessão validada no Auth + tabela `licenses` com RLS). Navegar para a landing não encerra a sessão; só "Sair" encerra. A sessão é renovada em todas as páginas quando há cookie do Supabase.
 
-**Compra (cadastro antes do checkout):** com vendas abertas, o visitante vê "Criar conta e comprar"; a conta logada vê "Comprar acesso fundador" com o link da Kiwify acrescido de `?sck=<id da conta>`. O retorno do navegador depois do pagamento **não libera nada**: só o webhook autenticado com `order_approved`/`paid` concede a licença.
+**Compra (cadastro antes do checkout):** com vendas abertas, o visitante vê "Criar conta e comprar"; a conta logada vê "Comprar acesso fundador" com o link da Cakto acrescido de `?callback=<id da conta>&sck=<id da conta>`. A Cakto devolve esse id em todo evento do webhook (`data.callback`). O retorno do navegador depois do pagamento **não libera nada**: só o webhook autenticado com `purchase_approved` e status `paid` concede a licença.
 
-**Webhook** (`POST /api/webhooks/kiwify`):
-1. desligado (503) sem `KIWIFY_WEBHOOK_TOKEN`, `KIWIFY_PRODUCT_ID` e `SUPABASE_SECRET_KEY`;
-2. confere `?signature=` = HMAC-SHA1 do corpo cru com o token (mecanismo documentado em docs.kiwify.com.br/api-reference/webhooks/receiving; vetor oficial coberto por teste) — senão 401;
-3. `paid` do produto configurado → concede; `refunded`/`chargedback` → revoga a licença daquele pedido; pendente/recusado → ignora;
-4. o banco (`apply_purchase_event`) faz tudo numa transação: idempotência por (pedido, tipo de evento), "pago" depois de reembolso não reativa, conta escolhida pelo `sck` ou, na falta, pelo e-mail **confirmado** igual ao da compra; sem conta → registra `unmatched` para resolução manual (nunca cria acesso para quem não tem conta).
+**Webhook** (`POST https://cenalab.com/api/webhooks/cakto`), conforme [docs.cakto.com.br/conceitos/webhooks](https://docs.cakto.com.br/conceitos/webhooks):
+1. desligado (503) sem `CAKTO_WEBHOOK_SECRET`, `CAKTO_PRODUCT_ID` e `SUPABASE_SECRET_KEY`;
+2. confere `X-Cakto-Signature: v1=<hex>` = HMAC-SHA256 de `{X-Cakto-Timestamp}.{corpo cru}` com o secret, recusa entrega com mais de 5 minutos (replay) e, se o corpo trouxer `secret`, exige que bata — senão 401, sem tocar no banco;
+3. só pedidos do produto configurado (`product.id` ou `product.short_id`): `purchase_approved` com `status: "paid"` → concede; `refund` → revoga; `chargeback` (inclui pré-chargeback e MED do Pix) → revoga; o resto (Pix/boleto gerado, recusado, pedido de reembolso ainda na janela, abandono) → ignora;
+4. o banco (`apply_purchase_event`) faz tudo numa transação: idempotência por (pedido, evento), aprovação depois de reembolso/chargeback não reativa, licença **só para a conta indicada no checkout** (e com e-mail confirmado). E-mail igual não escolhe conta: compra sem conta indicada fica `unmatched` para resolução manual;
+5. falha do banco → 500. A Cakto **não** reenvia respostas não-2xx sozinha: a entrega fica como falha no histórico do webhook, e você usa "Reenviar evento" (a idempotência evita duplicar).
+
+O webhook da Kiwify (`/api/webhooks/kiwify`) continua no código, desligado (sem as variáveis `KIWIFY_*` ele responde 503).
 
 ## Passo a passo
 
 ### 1. Banco (Supabase → SQL Editor)
-1. Rode, em ordem, as migrations de `supabase/migrations/` que ainda não rodou. A nova é `20261107120000_purchase_events.sql`.
+1. Rode, em ordem, as migrations de `supabase/migrations/` que ainda não rodou. As de compras são `20261107120000_purchase_events.sql` e `20261108120000_cakto.sql`.
 2. Rode `supabase/tests/verificar_acesso_gerador.sql` (RLS das licenças) — instruções no próprio arquivo.
-3. Rode `supabase/tests/compras_simuladas.sql` com o e-mail de uma conta de teste: a tabela final deve mostrar **OK** nos 8 passos (tudo é desfeito no fim).
+3. Rode `supabase/tests/compras_simuladas.sql` com o e-mail de uma conta de teste: a tabela final deve mostrar **OK** em todos os passos (0–12) (tudo é desfeito no fim).
 
 ### 2. URLs de autenticação (Supabase → Authentication → URL Configuration)
 - **Site URL:** o domínio de produção (ex.: `https://cenalab.com.br`). Até publicar, pode ficar `http://localhost:3000`.
@@ -56,23 +59,27 @@ Recomendado antes de vender: em **Authentication → Emails → SMTP Settings**,
 3. bloco 3 (revogar) → recarregue: "Licença revogada"; `/app` manda para a conta; gerar é recusado; histórico continua;
 4. bloco 4 (limpar).
 
-### 5. Kiwify (com as vendas ainda em PRELAUNCH)
-1. Crie o produto **CENA LAB Fundador — R$47, pagamento único** e anote o ID do produto.
-2. Em Apps → Webhooks, cadastre `https://SEU-DOMINIO/api/webhooks/kiwify` com os eventos: compra aprovada, compra reembolsada, chargeback (pix/boleto gerado e recusada podem ficar — são ignorados). Anote o **token**.
-3. Na Vercel (só servidor): `KIWIFY_WEBHOOK_TOKEN`, `KIWIFY_PRODUCT_ID`, `SUPABASE_SECRET_KEY` (Supabase → Settings → API Keys → Secret key). Redeploy.
-4. Use **Testar Webhook** na Kiwify: o evento de teste deve voltar **200** (com `other_product` ou `unmatched`, porque o pedido é fictício). Em **Ver logs**, confira no payload real os nomes `Product.product_id`, `Customer.email` e `TrackingParameters.sck` — o código aceita esses e os da API (`product.id`, `customer.email`, `tracking.sck`); se vierem diferentes, me avise antes de vender.
-5. Compra real de validação (a Kiwify não tem sandbox): logado numa conta de teste, abra o checkout pelo botão do site (com as vendas abertas só para você — veja o passo 6) ou cole o link do checkout acrescido de `?sck=<id da conta>`; pague (cupom de 100% se a Kiwify permitir, ou R$47 e reembolso). Confira: licença ativa em `/conta`; em `purchase_events`, `outcome = granted`; reenviar o evento em "Ver logs" dá `duplicate`; o reembolso deixa a licença revogada.
+### 5. Cakto (com as vendas ainda em PRELAUNCH)
+1. Crie o produto **CENA LAB Fundador — R$47, pagamento único** e anote o **id do produto** (o UUID da API ou o short_id que aparece no link do produto no painel; qualquer um serve).
+2. Em **Apps → Webhooks** ([painel](https://app.cakto.com.br/dashboard/apps)), crie um webhook:
+   - **URL:** `https://cenalab.com/api/webhooks/cakto`
+   - **Produto:** CENA LAB Fundador
+   - **Eventos:** Compra aprovada (`purchase_approved`), Reembolso (`refund`), Chargeback (`chargeback`). Os outros podem ficar desmarcados (se vierem, são ignorados).
+   - Copie o **secret** que a Cakto gera.
+3. Na Vercel (Settings → Environment Variables → Production, marcando **Sensitive**): `CAKTO_WEBHOOK_SECRET`, `CAKTO_PRODUCT_ID`, `SUPABASE_SECRET_KEY` (Supabase → Settings → API Keys → Secret key). Redeploy.
+4. No webhook, use **Testar** (evento `purchase_approved`). O teste da Cakto é um exemplo fixo, de outro produto e sem conta: a resposta esperada é **200** com `other_product` — isso prova que a assinatura e o secret batem. Um **401** significa secret errado; **503**, variável faltando.
+5. Compra real de validação (a Cakto não tem ambiente de testes): logado numa conta de teste, abra o checkout com o link do produto acrescido de `?callback=<id da conta>` (o id está em Supabase → Authentication → Users), pague (cupom de 100% se a Cakto permitir, ou R$47 e reembolso). Confira: licença ativa em `/conta`; em `purchase_events`, `outcome = granted` e `user_hint` = o id da conta; reenviar o evento no histórico dá `duplicate`; o reembolso deixa a licença revogada. Se vier `unmatched`, o `callback` não chegou no evento: me avise antes de vender.
 
 ### 6. Abrir as vendas (só depois de 1–5)
-Na Vercel: `CENA_CHECKOUT_URL=https://pay.kiwify.com.br/...` e `CENA_SALES_MODE=SALES_ENABLED`. Redeploy. Sem a URL, o site continua em "Em breve".
+Na Vercel: `CENA_CHECKOUT_URL=https://pay.cakto.com.br/...` (o link do checkout do produto) e `CENA_SALES_MODE=SALES_ENABLED`. Redeploy. Sem a URL, o site continua em "Em breve".
 
 ### 7. Publicar e validar em produção (desktop e celular)
-Cadastro real → e-mail em português chega → confirmar → cai em `/conta` sem licença → "Ver plano fundador" → checkout com `sck` → pagamento → licença ativa → `/app` → gerar prompt V2 → sair → entrar → continua ativo. Recuperar a senha pelo e-mail. Visitante não gera. Reembolso remove o acesso.
+Cadastro real → e-mail em português chega → confirmar → cai em `/conta` sem licença → "Ver plano fundador" → checkout com `callback` → pagamento → licença ativa → `/app` → gerar prompt V2 → sair → entrar → continua ativo. Recuperar a senha pelo e-mail. Visitante não gera. Reembolso remove o acesso.
 
 ## Testes já executados (sem credenciais reais)
 
-**Automatizados (simulação, `npm test`):** webhook com o vetor oficial da Kiwify, assinatura inválida/ausente/de outro token, token anterior aceito, desligado sem configuração, produto errado, reembolso/chargeback sem id do produto, pix/boleto/recusado ignorados, evento repetido, falha do banco → 500, JSON inválido, corpo enorme; destino após login/confirmação; logo e CTA do cabeçalho por estado; CTA de compra (pré-lançamento, visitante, conta); só a rota do webhook importa o cliente administrativo; migration (RLS, função só para `service_role`, idempotência, fora de ordem); páginas da conta nos 4 estados.
+**Automatizados (simulação, `npm test`):** webhook da Cakto — assinatura HMAC-SHA256 conforme o exemplo oficial, evento falso (assinatura errada/ausente/de outro secret, corpo alterado, secret do corpo diferente), replay de mais de 5 min, compra aprovada, outro produto, reembolso, chargeback (inclusive MED), duplicação, falha do banco → 500, pendentes/recusado/abandono ignorados, entrega V2 em lista; webhook da Kiwify com o vetor oficial, assinatura inválida/ausente/de outro token, token anterior aceito, desligado sem configuração, produto errado, reembolso/chargeback sem id do produto, pix/boleto/recusado ignorados, evento repetido, falha do banco → 500, JSON inválido, corpo enorme; destino após login/confirmação; logo e CTA do cabeçalho por estado; CTA de compra (pré-lançamento, visitante, conta); só a rota do webhook importa o cliente administrativo; migration (RLS, função só para `service_role`, idempotência, fora de ordem); páginas da conta nos 4 estados.
 
 **No navegador, com o Supabase real, como visitante (25/25, desktop e celular):** logo → `/`, planos "Em breve" sem checkout, `/conta` e `/app` → login, estúdio recusa e orienta a entrar, link de confirmação inválido → aviso, login com senha errada, webhook desligado → 503, sem erros de JavaScript.
 
-**Pendentes (precisam de você):** cadastro + e-mail + confirmação com os novos templates; login com licença de teste (passo 4); scripts SQL no seu projeto; webhook com evento real da Kiwify; compra de validação; tudo em produção.
+**Pendentes (precisam de você):** cadastro + e-mail + confirmação com os novos templates; login com licença de teste (passo 4); scripts SQL no seu projeto; webhook com evento real da Cakto; compra de validação; tudo em produção.

@@ -35,13 +35,15 @@ export function parseSalesConfig(env: Record<string, string | undefined>): Sales
 }
 
 /**
- * Link do checkout para UMA conta: o id do usuário vai no parâmetro de
- * rastreio `sck`, que a Kiwify devolve na venda (tracking.sck). É só uma
- * indicação de qual conta recebe a licença: quem libera o acesso é o webhook
- * autenticado com pagamento aprovado — nunca o retorno do navegador.
+ * Link do checkout para UMA conta: o id do usuário vai em `callback`, que a
+ * Cakto grava no pedido e devolve em todo evento do webhook (data.callback),
+ * e também em `sck` (rastreio, devolvido como data.sck). É só a indicação de
+ * qual conta recebe a licença: quem libera o acesso é o webhook autenticado
+ * com pagamento aprovado — nunca o retorno do navegador.
  */
 export function checkoutUrlFor(base: string, userId: string): string {
   const url = new URL(base);
+  url.searchParams.set("callback", userId);
   url.searchParams.set("sck", userId);
   return url.toString();
 }

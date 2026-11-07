@@ -97,7 +97,7 @@ describe("código do app", () => {
   it("não usa service_role nem chaves secretas (exceto o cliente administrativo do webhook)", () => {
     // Exceção única e documentada: o webhook de pagamento chama a função do banco com a chave
     // secreta. O teste commercial-flow garante que só a rota do webhook importa esse cliente.
-    const allowed = ["src/lib/supabase/admin.ts", "src/lib/kiwify/webhook.ts"];
+    const allowed = ["src/lib/supabase/admin.ts", "src/lib/kiwify/webhook.ts", "src/lib/cakto/webhook.ts"];
     for (const [file, src] of appSource) {
       if (allowed.includes(file.replace(/\\/g, "/"))) continue;
       expect(src, file).not.toMatch(/service_role|SUPABASE_SERVICE|SUPABASE_SECRET|sb_secret_/i);

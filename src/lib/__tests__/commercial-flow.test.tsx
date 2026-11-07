@@ -201,10 +201,10 @@ describe("compra: cadastro antes do checkout", () => {
     expect(h).toContain('href="/cadastro"');
     expect(h).not.toContain("pay.kiwify");
   });
-  it("vendas abertas, conta logada: checkout ligado à conta (sck)", () => {
+  it("vendas abertas, conta logada: checkout ligado à conta (callback e sck)", () => {
     const h = renderToStaticMarkup(<PurchaseCta sales={open} buyerId={USER} />);
-    expect(h).toContain(`https://pay.kiwify.com.br/abc123?sck=${USER}`);
-    expect(checkoutUrlFor("https://pay.kiwify.com.br/abc123?a=1", USER)).toBe(`https://pay.kiwify.com.br/abc123?a=1&sck=${USER}`);
+    expect(h).toContain(`https://pay.kiwify.com.br/abc123?callback=${USER}&amp;sck=${USER}`);
+    expect(checkoutUrlFor("https://pay.kiwify.com.br/abc123?a=1", USER)).toBe(`https://pay.kiwify.com.br/abc123?a=1&callback=${USER}&sck=${USER}`);
   });
 });
 
@@ -215,11 +215,12 @@ describe("credencial administrativa isolada", () => {
       if (statSync(p).isDirectory()) return n === "__tests__" ? [] : files(p);
       return /\.(ts|tsx)$/.test(n) ? [p] : [];
     });
-  it("só a rota do webhook importa o cliente administrativo, e ele é server-only", () => {
+  it("só as rotas de webhook importam o cliente administrativo, e ele é server-only", () => {
     const users = files("src").filter((f) => /supabase\/admin["']/.test(readFileSync(f, "utf8"))).map((f) => f.replace(/\\/g, "/"));
-    expect(users).toEqual(["src/app/api/webhooks/kiwify/route.ts"]);
+    expect(users.sort()).toEqual(["src/app/api/webhooks/cakto/route.ts", "src/app/api/webhooks/kiwify/route.ts"]);
     expect(readFileSync("src/lib/supabase/admin.ts", "utf8")).toMatch(/^import "server-only";/);
     expect(readFileSync("src/lib/kiwify/webhook.ts", "utf8")).toMatch(/^import "server-only";/);
+    expect(readFileSync("src/lib/cakto/webhook.ts", "utf8")).toMatch(/^import "server-only";/);
   });
   it("a chave secreta não tem versão NEXT_PUBLIC_ em lugar nenhum", () => {
     for (const f of files("src")) expect(readFileSync(f, "utf8"), f).not.toMatch(/NEXT_PUBLIC_[A-Z_]*(SECRET|SERVICE)/);
