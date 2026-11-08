@@ -211,6 +211,13 @@ describe("compra: cadastro antes do checkout", () => {
     expect(h).not.toContain("callback");
     expect(checkoutUrlFor("https://pay.kiwify.com.br/abc123?a=1", USER_TOKEN)).toBe(`https://pay.kiwify.com.br/abc123?a=1&sck=${USER_TOKEN}`);
   });
+  it("oferta Fundador R$47 da Cakto: o link é mantido e só ganha o sck da conta", () => {
+    const offer = "https://pay.cakto.com.br/4gvhvgx_1294413";
+    const cakto = parseSalesConfig({ CENA_SALES_MODE: "SALES_ENABLED", CENA_CHECKOUT_URL: ` ${offer}\n`, CENA_CHECKOUT_LINK_SECRET: LINK_SECRET });
+    expect(cakto).toMatchObject({ canSell: true, checkoutUrl: offer });
+    expect(renderToStaticMarkup(<PurchaseCta sales={cakto} buyerToken={USER_TOKEN} />)).toContain(`href="${offer}?sck=${USER_TOKEN}"`);
+    expect(parseSalesConfig({ CENA_CHECKOUT_URL: offer, CENA_CHECKOUT_LINK_SECRET: LINK_SECRET })).toMatchObject({ mode: "PRELAUNCH", canSell: false, checkoutUrl: null });
+  });
 });
 
 describe("credencial administrativa isolada", () => {

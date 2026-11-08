@@ -84,6 +84,9 @@ export function OfferSection({ sales }: { sales: SalesConfig }) {
             </p>
             <p className="mt-3 text-lg font-semibold">{p.billing}</p>
             <p className="mt-1 text-sm text-white/70">Sem mensalidade.</p>
+            <p className="mt-1 text-sm leading-relaxed text-white/70" data-fee>
+              {p.feeNote}
+            </p>
 
             <ul className="mt-7 space-y-3 border-t border-white/10 pt-6">
               {p.highlights.map((h) => (

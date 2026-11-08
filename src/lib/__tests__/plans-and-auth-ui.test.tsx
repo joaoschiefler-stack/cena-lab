@@ -18,6 +18,7 @@ describe("página de planos", () => {
     expect(t).toContain("Pague uma vez.");
     expect(t).toContain("CENA LAB Fundador");
     expect(t).toContain("R$47");
+    expect(t).toContain("No checkout, a Cakto acrescenta R$0,99 de taxa de serviço. Total a pagar: R$47,99.");
     expect(t).toContain("Pagamento único");
     expect(t).toContain("Acesso fundador");
     expect(t).toContain("A ferramenta prepara os prompts de produção. O Claude executa a animação.");
@@ -63,7 +64,7 @@ describe("página de planos", () => {
 
   it("não inventa preço anterior, desconto, contador ou depoimento", () => {
     expect(t).not.toMatch(/de R\$|desconto|%\s*off|restam|últimas vagas|depoimento|avalia/i);
-    expect([...new Set(t.match(/R\$\d+/g))]).toEqual([FOUNDER_PLAN.priceLabel]);
+    expect(new Set(t.match(/R\$[\d,]+/g))).toEqual(new Set([FOUNDER_PLAN.priceLabel, FOUNDER_PLAN.feeLabel, FOUNDER_PLAN.totalLabel]));
   });
 });
 

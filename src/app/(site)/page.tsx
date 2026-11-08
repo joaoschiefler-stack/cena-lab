@@ -287,7 +287,7 @@ export default function Home() {
           <h2 className="relative text-3xl font-extrabold sm:text-5xl">Qual é a sua história?</h2>
           <p className="relative mx-auto mt-3 max-w-lg text-white/85">
             {sales.canSell
-              ? `${FOUNDER_PLAN.name}: ${FOUNDER_PLAN.priceLabel}, ${FOUNDER_PLAN.billing.toLowerCase()}.`
+              ? `${FOUNDER_PLAN.name}: ${FOUNDER_PLAN.priceLabel}, ${FOUNDER_PLAN.billing.toLowerCase()} (${FOUNDER_PLAN.totalLabel} com a taxa de serviço da Cakto).`
               : `O ${FOUNDER_PLAN.name} está em pré-lançamento. Veja o que está incluído e teste o estúdio enquanto isso.`}
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

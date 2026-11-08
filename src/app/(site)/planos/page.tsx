@@ -4,7 +4,7 @@ import { getSalesConfig } from "@/lib/sales";
 
 export const metadata: Metadata = {
   title: "Planos",
-  description: "CENA LAB Fundador: R$47 em pagamento único. Prompts especializados para criar historinhas animadas com Claude.",
+  description: "CENA LAB Fundador: R$47 em pagamento único (+ R$0,99 de taxa da Cakto: total R$47,99). Prompts especializados para criar historinhas animadas com Claude.",
 };
 
 export default function PlansPage() {

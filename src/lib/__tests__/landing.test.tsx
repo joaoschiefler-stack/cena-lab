@@ -60,7 +60,7 @@ describe("homepage comercial", () => {
 
   it("não inventa desconto, urgência, depoimentos ou números de audiência", () => {
     expect(t).not.toMatch(/de R\$|desconto|% ?off|restam|últimas vagas|só hoje|depoimento|visualizações|faturamento|viraliz(a|ar) garantid/i);
-    expect([...new Set(t.match(/R\$\d+/g))]).toEqual([FOUNDER_PLAN.priceLabel]);
+    expect(new Set(t.match(/R\$[\d,]+/g))).toEqual(new Set([FOUNDER_PLAN.priceLabel, FOUNDER_PLAN.feeLabel, FOUNDER_PLAN.totalLabel]));
   });
 
   it("FAQ responde as oito perguntas pedidas", () => {
@@ -92,6 +92,7 @@ describe("seção de oferta", () => {
   it("usa a mesma fonte de dados de /planos", () => {
     const t = text(renderToStaticMarkup(<OfferSection sales={parseSalesConfig({})} />));
     expect(t).toContain(FOUNDER_PLAN.priceLabel);
+    expect(t).toContain(FOUNDER_PLAN.feeNote);
     expect(t).toContain(FOUNDER_PLAN.billing);
     expect(t).toContain(FOUNDER_PLAN.access);
     for (const g of FEATURE_GROUPS) for (const item of g.items) expect(t).toContain(item);

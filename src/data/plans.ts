@@ -8,6 +8,10 @@ export const FOUNDER_PLAN = {
   chip: "Acesso fundador",
   price: 47,
   priceLabel: "R$47",
+  /** Taxa de serviço que a Cakto acrescenta no checkout (não é removível); o preço do produto continua R$47. */
+  feeLabel: "R$0,99",
+  totalLabel: "R$47,99",
+  feeNote: "No checkout, a Cakto acrescenta R$0,99 de taxa de serviço. Total a pagar: R$47,99.",
   billing: "Pagamento único",
   access:
     "Acesso vitalício às funcionalidades da versão adquirida, conforme as condições comerciais publicadas.",
@@ -80,7 +84,7 @@ export const PLAN_FAQ = [
   },
   {
     q: "É pagamento único?",
-    a: `Sim. O CENA LAB Fundador custa ${FOUNDER_PLAN.priceLabel} em pagamento único, sem mensalidade. O acesso vale para as funcionalidades da versão adquirida, conforme as condições comerciais que serão publicadas na abertura das vendas.`,
+    a: `Sim. O CENA LAB Fundador custa ${FOUNDER_PLAN.priceLabel} em pagamento único, sem mensalidade. No checkout, a Cakto acrescenta ${FOUNDER_PLAN.feeLabel} de taxa de serviço, e o total pago é ${FOUNDER_PLAN.totalLabel}. O acesso vale para as funcionalidades da versão adquirida, conforme as condições comerciais que serão publicadas na abertura das vendas.`,
   },
   {
     q: "Posso produzir várias histórias?",

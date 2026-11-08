@@ -72,6 +72,9 @@ export function PlansView({ sales }: { sales: SalesConfig }) {
               </span>
             </p>
             <p className="mt-2 text-base font-semibold text-fg">{p.billing}</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted" data-fee>
+              {p.feeNote}
+            </p>
             <ul className="mt-6 space-y-3">
               {p.highlights.map((h) => (
                 <li key={h} className="flex gap-3 text-sm leading-relaxed text-fg">
