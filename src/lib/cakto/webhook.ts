@@ -72,7 +72,7 @@ export interface CaktoOrder {
   productId: string | null;
   productShortId: string | null;
   email: string | null;
-  /** Conta indicada no checkout (`callback`, ou `sck`), só se o token for assinado por nós. */
+  /** Conta indicada no checkout (`sck`), só se o token for assinado por nós. */
   userHint: string | null;
 }
 
@@ -107,7 +107,8 @@ export function parseCaktoOrder(event: string, data: unknown, linkSecret: string
   if (!orderId || !status) return null;
   const product = isObj(data.product) ? data.product : {};
   const customer = isObj(data.customer) ? data.customer : {};
-  const hint = [data.callback, data.sck].map((v) => accountFromToken(v, linkSecret)).find(Boolean) ?? null;
+  // Só `sck`: `callback` não é usado no link (o checkout dá 404 com ele).
+  const hint = accountFromToken(data.sck, linkSecret);
   const email = str(customer.email, 320);
   return {
     orderId,

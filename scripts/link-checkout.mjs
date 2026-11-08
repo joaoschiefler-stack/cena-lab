@@ -1,4 +1,4 @@
-// Link do checkout ligado a UMA conta, com o mesmo token que o site gera (src/lib/checkout-link.ts).
+// Link do checkout ligado a UMA conta (token assinado em `sck`), igual ao que o site gera (src/lib/checkout-link.ts).
 //
 //   node scripts/link-checkout.mjs <link da oferta> <id da conta>
 //
@@ -24,8 +24,9 @@ if (!secret) {
   process.exit(1);
 }
 
-const token = `${id}.${createHmac("sha256", secret).update(`cena-lab/checkout-account/v1:${id}`).digest("base64url")}`;
+const sig = createHmac("sha256", secret).update(`cena-lab/checkout-account/v1:${id}`).digest("hex").slice(0, 32);
+const token = `v1${id.replace(/-/g, "")}${sig}`;
 const url = new URL(offer);
-url.searchParams.set("callback", token);
+url.searchParams.delete("callback"); // o checkout da Cakto dá 404 com callback
 url.searchParams.set("sck", token);
 console.log(`Link do checkout para a conta ${id}:\n${url}`);

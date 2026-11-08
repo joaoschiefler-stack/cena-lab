@@ -30,8 +30,8 @@ const order = (patch: Record<string, unknown> = {}) => ({
   offer_type: "main",
   customer: { id: 481920, name: "John Doe", email: "John.Doe@Example.com" },
   product: { id: PRODUCT, short_id: "42bruPi", name: "CENA LAB Fundador", type: "unique" },
-  sck: null,
-  callback: USER_TOKEN,
+  sck: USER_TOKEN,
+  callback: null,
   ...patch,
 });
 const body = (event: string, data: unknown = order(), secret: string | undefined = SECRET) => JSON.stringify({ secret, event, data });
@@ -129,8 +129,7 @@ describe("Cakto — processamento", () => {
       amount: 5.0,
       baseAmount: 5.0,
       offer: { id: "T5abcde", name: "Teste R$5", price: 5.0, currency: "BRL" },
-      checkoutUrl: `https://pay.cakto.com.br/T5abcde?callback=${USER_TOKEN}&sck=${USER_TOKEN}`,
-      sck: USER_TOKEN,
+      checkoutUrl: `https://pay.cakto.com.br/T5abcde?sck=${USER_TOKEN}`,
     });
     const r = await handleCaktoWebhook({ ...signed(body("purchase_approved", teste)), config: CONFIG, apply: fn });
     expect(r.body).toEqual({ ok: true, outcome: "granted" });
@@ -219,30 +218,33 @@ describe("Cakto — processamento", () => {
 });
 
 describe("Cakto — vínculo com a conta", () => {
-  it("callback (ou sck) só vale com o token assinado pelo servidor; e-mail não indica conta", () => {
+  it("só o sck com o token assinado pelo servidor indica a conta; e-mail não indica conta", () => {
     const hint = (patch: Record<string, unknown>) => parseCaktoOrder("purchase_approved", order(patch), LINK_SECRET)!.userHint;
     expect(hint({})).toBe(USER);
-    expect(hint({ callback: null, sck: USER_TOKEN })).toBe(USER);
-    expect(hint({ callback: "qualquer" })).toBeNull();
-    expect(hint({ callback: null })).toBeNull();
-    // UUID cru posto à mão na URL não indica conta nenhuma
-    expect(hint({ callback: USER, sck: USER })).toBeNull();
-    // token de outra conta com a assinatura copiada, ou assinado com outra chave → recusado
+    expect(hint({ sck: USER_TOKEN.toUpperCase() })).toBeNull();
+    expect(hint({ sck: null })).toBeNull();
+    expect(hint({ sck: "teste123" })).toBeNull();
+    // UUID cru posto à mão na URL (com ou sem hífens) não indica conta nenhuma
+    expect(hint({ sck: USER })).toBeNull();
+    expect(hint({ sck: USER.replace(/-/g, "") })).toBeNull();
+    // callback não é usado, nem com o token certo
+    expect(hint({ sck: null, callback: USER_TOKEN })).toBeNull();
+    // integridade: token de outra conta com a assinatura copiada, assinatura alterada ou outra chave → recusado
     const OUTRO = "0b7a6c5d-4e3f-4a1b-9c8d-7e6f5a4b3c2d";
-    expect(hint({ callback: `${OUTRO}.${USER_TOKEN.split(".")[1]}` })).toBeNull();
-    expect(hint({ callback: accountToken(OUTRO, "outra-chave-qualquer-com-32-caracteres!") })).toBeNull();
+    expect(hint({ sck: `v1${OUTRO.replace(/-/g, "")}${USER_TOKEN.slice(34)}` })).toBeNull();
+    expect(hint({ sck: USER_TOKEN.slice(0, -1) + (USER_TOKEN.endsWith("0") ? "1" : "0") })).toBeNull();
+    expect(hint({ sck: accountToken(OUTRO, "outra-chave-qualquer-com-32-caracteres!") })).toBeNull();
+    expect(hint({ sck: accountToken(OUTRO, LINK_SECRET) })).toBe(OUTRO);
     expect(parseCaktoOrder("purchase_approved", order(), null)!.userHint).toBeNull();
     expect(caktoAction("purchase_approved", "paid")).toBe("grant");
     expect(caktoAction("refund", "refunded")).toBe("revoke");
   });
 
-  it("o link do checkout leva o token assinado da conta em callback e sck, no formato aceito pela Cakto", () => {
-    expect(USER_TOKEN).toMatch(/^[A-Za-z0-9._~-]{1,255}$/);
+  it("o link do checkout leva o token assinado só em sck (sem callback), só com letras e números", () => {
+    expect(USER_TOKEN).toMatch(/^[a-z0-9]{66}$/);
     expect(accountFromToken(USER_TOKEN, LINK_SECRET)).toBe(USER);
-    const url = new URL(checkoutUrlFor("https://pay.cakto.com.br/abc123", USER_TOKEN));
-    expect(url.searchParams.get("callback")).toBe(USER_TOKEN);
-    expect(url.searchParams.get("sck")).toBe(USER_TOKEN);
-    expect(url.search).toBe(`?callback=${USER_TOKEN}&sck=${USER_TOKEN}`);
+    expect(checkoutUrlFor("https://pay.cakto.com.br/abc123", USER_TOKEN)).toBe(`https://pay.cakto.com.br/abc123?sck=${USER_TOKEN}`);
+    expect(checkoutUrlFor("https://pay.cakto.com.br/abc123?callback=x", USER_TOKEN)).toBe(`https://pay.cakto.com.br/abc123?sck=${USER_TOKEN}`);
   });
 
   it("scripts/link-checkout.mjs gera o mesmo link que o site", () => {

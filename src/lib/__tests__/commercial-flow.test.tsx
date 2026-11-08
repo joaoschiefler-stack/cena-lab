@@ -205,10 +205,11 @@ describe("compra: cadastro antes do checkout", () => {
     expect(h).toContain('href="/cadastro"');
     expect(h).not.toContain("pay.kiwify");
   });
-  it("vendas abertas, conta logada: checkout ligado à conta pelo token assinado (callback e sck)", () => {
+  it("vendas abertas, conta logada: checkout ligado à conta pelo token assinado em sck", () => {
     const h = renderToStaticMarkup(<PurchaseCta sales={open} buyerToken={USER_TOKEN} />);
-    expect(h).toContain(`https://pay.kiwify.com.br/abc123?callback=${USER_TOKEN}&amp;sck=${USER_TOKEN}`);
-    expect(checkoutUrlFor("https://pay.kiwify.com.br/abc123?a=1", USER_TOKEN)).toBe(`https://pay.kiwify.com.br/abc123?a=1&callback=${USER_TOKEN}&sck=${USER_TOKEN}`);
+    expect(h).toContain(`https://pay.kiwify.com.br/abc123?sck=${USER_TOKEN}"`);
+    expect(h).not.toContain("callback");
+    expect(checkoutUrlFor("https://pay.kiwify.com.br/abc123?a=1", USER_TOKEN)).toBe(`https://pay.kiwify.com.br/abc123?a=1&sck=${USER_TOKEN}`);
   });
 });
 

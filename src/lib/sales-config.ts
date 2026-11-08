@@ -40,15 +40,15 @@ export function parseSalesConfig(env: Record<string, string | undefined>): Sales
 
 /**
  * Link do checkout para UMA conta: o token assinado da conta (accountToken, em
- * checkout-link.ts) vai em `callback`, que a Cakto grava no pedido e devolve em
- * todo evento do webhook (data.callback), e também em `sck` (rastreio,
- * devolvido como data.sck). É só a indicação de qual conta recebe a licença:
- * quem libera o acesso é o webhook autenticado com pagamento aprovado — nunca
- * o retorno do navegador.
+ * checkout-link.ts) vai em `sck`, que a Cakto grava no pedido e devolve em todo
+ * evento do webhook (data.sck). `callback` NÃO é usado: o checkout responde 404
+ * quando ele vem no link. O token é só a indicação de qual conta recebe a
+ * licença: quem libera o acesso é o webhook autenticado com pagamento aprovado
+ * — nunca o retorno do navegador.
  */
 export function checkoutUrlFor(base: string, accountToken: string): string {
   const url = new URL(base);
-  url.searchParams.set("callback", accountToken);
+  url.searchParams.delete("callback");
   url.searchParams.set("sck", accountToken);
   return url.toString();
 }
